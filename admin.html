@@ -38,7 +38,7 @@
   <label class="field" for="analytics-business">Negocio<select id="analytics-business"><option value="">Selecciona un negocio</option></select></label>
   <label class="field" for="analytics-month">Mes del reporte<input id="analytics-month" type="month"></label>
  </div>
- <div class="actions"><button class="primary" id="analytics-refresh" type="button">Consultar estadísticas</button><button class="secondary" id="analytics-pdf" type="button" disabled>↓ Descargar reporte PDF</button><p class="message" id="analytics-message" role="status" aria-live="polite">Selecciona un negocio y un mes.</p></div>
+ <div class="actions"><button class="primary" id="analytics-refresh" type="button">Consultar estadísticas</button><button class="secondary" id="analytics-pdf" type="button" disabled>↓ Descargar reporte PDF</button><button class="secondary" id="analytics-email" type="button" disabled>✉ Preparar correo</button><p class="message" id="analytics-message" role="status" aria-live="polite">Selecciona un negocio y un mes.</p></div>
  <div id="analytics-results" class="hidden">
   <div class="analytics-kpis">
    <div class="analytics-kpi"><div class="label">✦ Sellos entregados</div><div class="number" id="analytics-stamps">0</div></div>
@@ -279,6 +279,7 @@ function clearAnalytics(){
  ++analyticsLoadToken;
  analyticsPdfSnapshot=null;
  $('analytics-pdf').disabled=true;
+ $('analytics-email').disabled=true;
  $('analytics-results').classList.add('hidden');
  $('analytics-message').classList.remove('success');
  $('analytics-message').textContent='Selecciona un negocio y un mes.';
@@ -292,7 +293,7 @@ $('analytics-refresh').addEventListener('click',async()=>{
  if(!id){message.textContent='Selecciona un negocio.';return;}
  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)){message.textContent='Selecciona un mes válido.';return;}
  const token=++analyticsLoadToken,button=$('analytics-refresh');
- button.disabled=true;analyticsPdfSnapshot=null;$('analytics-pdf').disabled=true;message.classList.remove('success');message.textContent='Consultando datos reales…';
+ button.disabled=true;analyticsPdfSnapshot=null;$('analytics-pdf').disabled=true;$('analytics-email').disabled=true;message.classList.remove('success');message.textContent='Consultando datos reales…';
  $('analytics-results').classList.add('hidden');
  try{
   const {data,error}=await supabase.rpc('sellogo_analytics_mensual',{p_negocio_id:id,p_mes:month+'-01'});
@@ -315,10 +316,37 @@ $('analytics-refresh').addEventListener('click',async()=>{
   const negocio=studioBusinesses.find(b=>b.id===id);
   analyticsPdfSnapshot={id,month,name:negocio?.nombre||'Negocio',slug:negocio?.slug||'negocio',stamps,redemptions,active};
   $('analytics-pdf').disabled=false;
+  $('analytics-email').disabled=false;
   message.textContent='✓ Estadísticas consultadas en Supabase.';message.classList.add('success');
  }catch(e){
   if(token===analyticsLoadToken)message.textContent='No se pudieron consultar las estadísticas: '+(e?.message||'Error desconocido');
  }finally{button.disabled=false;}
+});
+
+// Correo manual: consulta el destinatario guardado; no envía ni adjunta archivos automáticamente.
+$('analytics-email').addEventListener('click',async()=>{
+ const r=analyticsPdfSnapshot, msg=$('analytics-message'),button=$('analytics-email');
+ if(!r||r.id!==$('analytics-business').value||r.month!==$('analytics-month').value){
+  msg.classList.remove('success');msg.textContent='Consulta las estadísticas antes de preparar el correo.';return;
+ }
+ button.disabled=true;msg.classList.remove('success');msg.textContent='Buscando correo del negocio…';
+ try{
+  const {data,error}=await supabase.rpc('sellogo_consultar_contacto_reporte',{p_negocio_id:r.id});
+  if(error)throw error;
+  if(analyticsPdfSnapshot!==r||r.id!==$('analytics-business').value||r.month!==$('analytics-month').value)return;
+  const contact=Array.isArray(data)?data[0]:data;
+  const email=String(contact?.correo||'').trim();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Este negocio no tiene un correo válido guardado. Agrégalo en «Contactos y reportes automáticos».');
+  const period=new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(r.month+'-01T12:00:00Z'));
+  const subject=`SelloGo Analytics | Reporte mensual de ${period} - ${r.name}`;
+  const body=`Hola, equipo de ${r.name}:\n\nLes compartimos su reporte mensual de SelloGo correspondiente a ${period}.\n\nDurante este periodo se registraron:\n- ${r.stamps.toLocaleString('es-MX')} sellos entregados\n- ${r.redemptions.toLocaleString('es-MX')} recompensas canjeadas\n- ${r.active.toLocaleString('es-MX')} clientes con actividad\n\nAdjuntamos el reporte en formato PDF para su consulta.\n\nGracias por confiar en SelloGo.\n\nSelloGo\nCada compra cuenta.\nsellogo@outlook.com`;
+  const mailto=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // Se usa el cliente de correo configurado en el equipo; no es un envío automático.
+  window.location.href=mailto;
+  msg.textContent='✓ Se solicitó abrir tu aplicación de correo. Revisa el destinatario y adjunta el PDF antes de enviar. Si no se abrió, configura una aplicación de correo predeterminada.';
+  msg.classList.add('success');
+ }catch(e){msg.textContent='No se pudo preparar el correo: '+(e?.message||'Error desconocido');}
+ finally{button.disabled=!(analyticsPdfSnapshot&&analyticsPdfSnapshot.id===$('analytics-business').value&&analyticsPdfSnapshot.month===$('analytics-month').value);}
 });
 
 // Descarga local de PDF: usa exclusivamente la última respuesta verificada de Analytics.
