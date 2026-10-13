@@ -2,29 +2,28 @@
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SelloGo · Empleados</title>
 <style>
-:root{font-family:system-ui,-apple-system,sans-serif;color:#35271d;background:#f8f3e9}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:20px}.box{background:white;max-width:650px;width:100%;padding:28px;border-radius:24px;box-shadow:0 12px 40px #503b2617;margin:20px auto}h1{margin:0;color:#8a612e}p,small{color:#75685c}label{display:block;margin:14px 0 6px;font-weight:600}input,button{width:100%;padding:12px;border-radius:12px;font:inherit}input{border:1px solid #d5c7b4}button{border:0;background:#9a713a;color:white;font-weight:700;margin-top:12px;cursor:pointer}button:disabled{opacity:.5}#panel{display:none}.card{border:1px solid #e9ddce;border-radius:14px;padding:16px;margin:14px 0}.muted{color:#75685c}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:520px){.grid{grid-template-columns:1fr}}#status{white-space:pre-wrap}
+:root{font-family:system-ui,-apple-system,sans-serif;color:#35271d;background:#f8f3e9}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:20px}.box{background:white;max-width:650px;width:100%;padding:28px;border-radius:24px;box-shadow:0 12px 40px #503b2617;margin:20px auto}h1{margin:0;color:#8a612e}p,small{color:#75685c}label{display:block;margin:14px 0 6px;font-weight:600}input,button{width:100%;padding:12px;border-radius:12px;font:inherit}input{border:1px solid #d5c7b4}button{border:0;background:#9a713a;color:white;font-weight:700;margin-top:12px;cursor:pointer}button:disabled{opacity:.5}#panel{display:none}.card{border:1px solid #e9ddce;border-radius:14px;padding:16px;margin:14px 0}.muted{color:#75685c}#status{white-space:pre-wrap}
 </style></head><body><main class="box"><h1>☕ SelloGo</h1><p>Acceso de empleados · Café Luna</p>
-<form id="login"><label for="email">Correo</label><input id="email" type="email" autocomplete="username" required>
-<label for="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required>
-<button id="submit">Iniciar sesión</button></form>
+<form id="login"><label for="email">Correo</label><input id="email" type="email" autocomplete="username" required><label for="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required><button id="submit">Iniciar sesión</button></form>
 <section id="panel"><h2>Panel de empleado</h2><p id="welcome"></p>
 <div class="card"><h3>Buscar tarjeta</h3><label for="search">Nombre o teléfono</label><input id="search" placeholder="Escribe al menos 2 caracteres"><button id="find">Buscar clientes</button><div id="results"></div></div>
-<div class="card"><h3>Tarjeta seleccionada</h3><div id="selected" class="muted">Busca un cliente y selecciona su tarjeta.</div><button id="stamp" disabled>Agregar un sello</button></div>
+<div class="card"><h3>Tarjeta seleccionada</h3><div id="selected" class="muted">Busca un cliente y selecciona su tarjeta.</div><button id="stamp" disabled>Agregar un sello</button><button id="redeem" disabled>Canjear recompensa</button></div>
 <button id="logout">Cerrar sesión</button></section><p id="status" role="status"></p></main>
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const $=s=>document.querySelector(s), status=$('#status'), form=$('#login'), panel=$('#panel'), btn=$('#submit');
-let supabase, negocioId=null, selected=null;
+let supabase, negocioId=null, selected=null, busy=false;
 function msg(s){status.textContent=s}
 function errorText(e){return e?.message||'Ocurrió un error'}
+function refreshButtons(){ $('#stamp').disabled=busy||!selected; $('#redeem').disabled=busy||!selected||Number(selected.recompensas_disponibles)<1; }
 const valid=SUPABASE_URL.startsWith('https://')&&SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');
 if(!valid){msg('Configura la URL y Publishable Key en config.js');btn.disabled=true}
 else{
 supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 async function showSession(){
 const {data:{user},error:userError}=await supabase.auth.getUser();
-if(userError||!user){form.style.display='block';panel.style.display='none';negocioId=null;return}
+if(userError||!user){form.style.display='block';panel.style.display='none';negocioId=null;selected=null;refreshButtons();return}
 const {data,error}=await supabase.from('empleados').select('rol, negocio_id, negocios(nombre)').eq('usuario_id',user.id).limit(1);
 if(error||!data?.length){await supabase.auth.signOut();form.style.display='block';panel.style.display='none';msg('La cuenta no está asignada como empleado.');return}
 negocioId=data[0].negocio_id;form.style.display='none';panel.style.display='block';
@@ -34,14 +33,14 @@ form.addEventListener('submit',async e=>{e.preventDefault();btn.disabled=true;ms
 const {error}=await supabase.auth.signInWithPassword({email:$('#email').value,password:$('#password').value});
 if(error){msg('No se pudo iniciar sesión. Comprueba correo y contraseña.');return}await showSession()
 }catch(e){msg(errorText(e))}finally{btn.disabled=false}});
-$('#logout').addEventListener('click',async()=>{await supabase.auth.signOut();selected=null;$('#selected').textContent='Busca un cliente y selecciona su tarjeta.';$('#stamp').disabled=true;msg('Sesión cerrada');await showSession()});
+$('#logout').addEventListener('click',async()=>{await supabase.auth.signOut();selected=null;$('#selected').textContent='Busca un cliente y selecciona su tarjeta.';refreshButtons();msg('Sesión cerrada');await showSession()});
 async function loadCard(cardId){
 const {data,error}=await supabase.from('tarjetas').select('id,cliente_id,negocio_id,sellos,recompensas_disponibles').eq('id',cardId).eq('negocio_id',negocioId).single();
 if(error)throw error;
-selected=data;$('#selected').textContent=`Sellos: ${data.sellos??0} de 5 · Recompensas disponibles: ${data.recompensas_disponibles??0}`;$('#stamp').disabled=false
+selected=data;$('#selected').textContent=`Sellos: ${data.sellos??0} de 5 · Recompensas disponibles: ${data.recompensas_disponibles??0}`;refreshButtons()
 }
 $('#find').addEventListener('click',async()=>{
-const q=$('#search').value.trim();$('#results').replaceChildren();selected=null;$('#stamp').disabled=true;
+const q=$('#search').value.trim();$('#results').replaceChildren();selected=null;refreshButtons();
 if(q.length<2){msg('Escribe al menos 2 caracteres.');return}
 $('#find').disabled=true;msg('Buscando…');
 try{
@@ -63,14 +62,25 @@ msg(count?`${count} tarjeta(s) encontrada(s).`:'Se encontró el cliente, pero a�
 finally{$('#find').disabled=false}
 });
 $('#stamp').addEventListener('click',async()=>{
-if(!selected||!negocioId)return;
-const id=selected.id;$('#stamp').disabled=true;msg('Registrando sello…');
+if(!selected||!negocioId||busy)return;
+const id=selected.id;busy=true;refreshButtons();msg('Registrando sello…');
 try{
 const {error}=await supabase.rpc('agregar_sello',{p_tarjeta:id});
 if(error)throw error;
 await loadCard(id);msg('Sello registrado correctamente.')
 }catch(e){msg('No se pudo agregar el sello: '+errorText(e))}
-finally{if(selected?.id===id)$('#stamp').disabled=false}
+finally{busy=false;refreshButtons()}
+});
+$('#redeem').addEventListener('click',async()=>{
+if(!selected||!negocioId||busy||Number(selected.recompensas_disponibles)<1)return;
+if(!window.confirm('¿Confirmas el canje de 1 recompensa? Esta acción descontará un premio.'))return;
+const id=selected.id;busy=true;refreshButtons();msg('Canjeando recompensa…');
+try{
+const {error}=await supabase.rpc('canjear_recompensa',{p_tarjeta:id});
+if(error)throw error;
+await loadCard(id);msg('Recompensa canjeada correctamente.')
+}catch(e){msg('No se pudo canjear: '+errorText(e))}
+finally{busy=false;refreshButtons()}
 });
 await showSession()
 }
