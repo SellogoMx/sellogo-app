@@ -76,6 +76,23 @@
  </form>
  <p class="hint">Guardar esta configuración no envía mensajes. El envío automático por correo y WhatsApp se conectará en una etapa posterior.</p>
 </section>
+<section class="panel" id="owners-panel" aria-labelledby="owners-title">
+ <div class="sub">ACCESOS DE PROPIETARIOS · SELLOGO BUSINESS</div>
+ <h2 id="owners-title">👤 Gestionar propietarios</h2>
+ <p>Asigna o retira acceso a una cuenta que ya exista en Supabase Auth. Solo la administración general puede gestionar estos permisos.</p>
+ <form id="owners-form">
+  <div class="formgrid">
+   <label class="field" for="owners-business">Negocio<select id="owners-business" required><option value="">Selecciona un negocio</option></select></label>
+   <label class="field" for="owners-email">Correo del propietario<input id="owners-email" type="email" maxlength="254" required autocomplete="off" placeholder="propietario@ejemplo.com"></label>
+  </div>
+  <div class="actions"><button class="primary" id="owners-assign" type="submit">+ Asignar propietario</button><button class="secondary" id="owners-remove" type="button">Retirar propietario</button><p class="message" id="owners-message" role="status" aria-live="polite"></p></div>
+ </form>
+ <div style="margin-top:25px;border-top:1px solid #ffffff24;padding-top:18px">
+  <div class="listhead"><strong>Propietarios asignados al negocio</strong><button class="secondary" type="button" id="owners-refresh">↻ Actualizar</button></div>
+  <p id="owners-list-message" class="message" role="status"></p><div id="owners-list" class="businesses" aria-live="polite"></div>
+ </div>
+ <p class="hint">Retirar acceso no elimina la cuenta de Supabase Auth ni sus datos. El panel del propietario dejará de mostrar el negocio al volver a consultar sus permisos.</p>
+</section>
 <section class="panel" aria-labelledby="employee-title"><div class="sub">ACCESOS POR EMPRESA</div><h2 id="employee-title">Gestionar empleados <span style="color:#ff872f">+</span></h2><p>Asigna un trabajador que ya tenga una cuenta registrada en Supabase Auth. Esta acción no crea cuentas ni envía invitaciones.</p><form id="employee-form"><div class="formgrid"><label class="field">Negocio<select id="employee-business" required><option value="">Selecciona un negocio</option></select></label><label class="field">Correo del empleado<input id="employee-email" type="email" required maxlength="254" autocomplete="off" placeholder="empleado@ejemplo.com"></label><label class="field">Rol<select id="employee-role" required><option value="empleado">Empleado</option><option value="administrador">Administrador del negocio</option></select></label></div><p class="hint">El rol «Administrador del negocio» no otorga acceso al panel general de SelloGo. Si la persona ya está asignada a ese negocio, su rol se actualizará.</p><div class="actions"><button id="employee-button" class="primary" type="submit">+ Asignar empleado</button><p id="employee-message" class="message" role="status"></p></div></form></section>
 <div class="notice">ℹ La suspensión se verifica en las funciones de sellos y canjes configuradas en Supabase. Revisa también cualquier nueva función de operaciones antes de publicarla.</div><div class="notice">✓ Acceso administrativo verificado. Puedes registrar negocios, editar promociones y asignar empleados existentes. Las invitaciones por correo y la consulta de empleados asignados se incorporarán más adelante.</div>
 </section>
@@ -112,11 +129,13 @@ async function loadBusinesses(){
     const qrSelector=$('qr-business'),qrPrevious=qrSelector.value;
     const reportSelector=$('report-business'),reportPrevious=reportSelector.value;
      const analyticsSelector=$('analytics-business'),analyticsPrevious=analyticsSelector.value;
+     const ownersSelector=$('owners-business'),ownersPrevious=ownersSelector.value;
    studioBusinesses=businesses;
    studioSelector.replaceChildren(new Option('Selecciona un negocio',''));
     qrSelector.replaceChildren(new Option('Selecciona un negocio',''));
     reportSelector.replaceChildren(new Option('Selecciona un negocio',''));
      analyticsSelector.replaceChildren(new Option('Selecciona un negocio',''));
+     ownersSelector.replaceChildren(new Option('Selecciona un negocio',''));
   selector.replaceChildren(new Option('Selecciona un negocio',''));
   for(const b of businesses){
    const card=document.createElement('article');card.className='business';
@@ -151,9 +170,12 @@ async function loadBusinesses(){
    tools.append(select,save);card.append(tools,feedback);
    const edit=document.createElement('button');edit.type='button';edit.className='edit-btn';
    edit.textContent='✎ Editar promoción';edit.addEventListener('click',()=>openPromotion(b));card.append(edit);
-   list.append(card);selector.add(new Option(b.nombre,b.id));studioSelector.add(new Option(b.nombre,b.id));qrSelector.add(new Option(b.nombre,b.id));reportSelector.add(new Option(b.nombre,b.id));analyticsSelector.add(new Option(b.nombre,b.id));
+   list.append(card);selector.add(new Option(b.nombre,b.id));studioSelector.add(new Option(b.nombre,b.id));qrSelector.add(new Option(b.nombre,b.id));reportSelector.add(new Option(b.nombre,b.id));analyticsSelector.add(new Option(b.nombre,b.id));ownersSelector.add(new Option(b.nombre,b.id));
   }
   if(businesses.some(b=>b.id===previous))selector.value=previous;
+   if(businesses.some(b=>b.id===ownersPrevious))ownersSelector.value=ownersPrevious;
+   else ownersSelector.value='';
+   await loadOwners();
    if(businesses.some(b=>b.id===analyticsPrevious))analyticsSelector.value=analyticsPrevious;
     else {analyticsSelector.value='';clearAnalytics();}
     if(businesses.some(b=>b.id===reportPrevious))reportSelector.value=reportPrevious;
@@ -524,6 +546,53 @@ $('report-form').addEventListener('submit',async e=>{
  finally{button.disabled=false;}
 });
 
+// Gestión de propietarios: solo RPCs con verificación de administrador en Supabase.
+let ownersLoadToken=0;
+let ownersBusy=false;
+async function loadOwners(){
+ const id=$('owners-business').value,token=++ownersLoadToken;
+ const list=$('owners-list'),msg=$('owners-list-message');
+ list.replaceChildren();msg.classList.remove('success');
+ if(!id){msg.textContent='Selecciona un negocio para ver sus propietarios.';return;}
+ msg.textContent='Consultando propietarios…';
+ try{
+  const {data,error}=await supabase.rpc('sellogo_listar_propietarios',{p_negocio_id:id});
+  if(token!==ownersLoadToken||$('owners-business').value!==id)return;
+  if(error)throw error;
+  const rows=Array.isArray(data)?data:[];
+  if(!rows.length){msg.textContent='Este negocio todavía no tiene propietarios asignados.';return;}
+  msg.textContent=`${rows.length} propietario(s) asignado(s).`;msg.classList.add('success');
+  for(const owner of rows){
+   const card=document.createElement('div');card.className='business';
+   const email=document.createElement('strong');email.textContent=owner.correo||'Cuenta sin correo';
+   const info=document.createElement('p');info.className='hint';info.textContent='Acceso al panel de propietario';
+   card.append(email,info);list.append(card);
+  }
+ }catch(e){if(token===ownersLoadToken)msg.textContent='No se pudo consultar: '+(e?.message||'Error desconocido')}
+}
+$('owners-business').addEventListener('change',loadOwners);
+$('owners-refresh').addEventListener('click',loadOwners);
+$('owners-form').addEventListener('submit',async e=>{e.preventDefault();await updateOwner(false)});
+$('owners-remove').addEventListener('click',async()=>{await updateOwner(true)});
+async function updateOwner(remove){
+ if(ownersBusy)return;
+ const id=$('owners-business').value,email=$('owners-email').value.trim().toLowerCase();
+ const msg=$('owners-message');msg.classList.remove('success');
+ if(!id){msg.textContent='Selecciona un negocio.';return;}
+ if(!email||!$('owners-email').checkValidity()){msg.textContent='Escribe un correo válido.';return;}
+ const business=studioBusinesses.find(b=>b.id===id);
+ if(remove&&!window.confirm(`¿Retirar a ${email} del negocio ${business?.nombre||'seleccionado'}?`))return;
+ ownersBusy=true;$('owners-assign').disabled=true;$('owners-remove').disabled=true;
+ msg.textContent=remove?'Retirando propietario…':'Asignando propietario…';
+ try{
+  const {data,error}=await supabase.rpc(remove?'sellogo_retirar_propietario':'sellogo_asignar_propietario',{p_negocio_id:id,p_correo:email});
+  if(error)throw error;
+  msg.textContent='✓ '+(data||(remove?'Propietario retirado.':'Propietario asignado.'));msg.classList.add('success');
+  if($('owners-business').value===id)await loadOwners();
+ }catch(e){msg.textContent='No se pudo completar: '+(e?.message||'Error desconocido')}
+ finally{ownersBusy=false;$('owners-assign').disabled=false;$('owners-remove').disabled=false;}
+}
+
 function openPromotion(b){selectedBusiness={id:b.id,nombre:b.nombre};$('edit-business-name').textContent=b.nombre;$('edit-stamps').value=b.sellos_objetivo;$('edit-reward').value=b.recompensa;$('edit-message').textContent='';$('edit-message').classList.remove('success');$('edit-panel').classList.remove('hidden');$('edit-panel').scrollIntoView({behavior:'smooth',block:'start'})}
 function closePromotion(){$('edit-panel').classList.add('hidden');selectedBusiness=null}
 $('cancel-promotion').addEventListener('click',closePromotion);
@@ -532,7 +601,7 @@ $('business-form').addEventListener('submit',async e=>{e.preventDefault();const 
 $('employee-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('employee-button');button.disabled=true;$('employee-message').classList.remove('success');$('employee-message').textContent='Asignando empleado…';try{const negocio=$('employee-business').value,correo=$('employee-email').value.trim().toLowerCase(),rol=$('employee-role').value;if(!negocio)throw Error('Selecciona un negocio.');if(!correo)throw Error('Escribe el correo del empleado.');const {data,error}=await supabase.rpc('sellogo_asignar_empleado',{p_negocio_id:negocio,p_correo:correo,p_rol:rol});if(error)throw error;$('employee-message').textContent='✓ '+(data||'Empleado asignado correctamente.');$('employee-message').classList.add('success');$('employee-email').value='';$('employee-role').value='empleado'}catch(err){$('employee-message').textContent='No se pudo asignar: '+(err?.message||'Error desconocido')}finally{button.disabled=false}});
 async function verify(){show('loading');try{const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user){show('login');return}const {data,error}=await supabase.from('administradores').select('usuario_id').eq('usuario_id',user.id).maybeSingle();if(error)throw error;if(!data){$('blocked-message').textContent='La cuenta '+(user.email||'actual')+' no está autorizada para administrar SelloGo.';show('blocked');return}$('admin-email').textContent=user.email||'Administrador';show('dashboard');await loadBusinesses()}catch(e){show('login');$('login-message').textContent='No se pudo comprobar el acceso: '+(e?.message||'Error de conexión')}}
 $('login-form').addEventListener('submit',async e=>{e.preventDefault();$('login-button').disabled=true;$('login-message').textContent='Iniciando sesión…';try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;$('password').value='';$('login-message').textContent='';await verify()}catch(err){$('login-message').textContent='No se pudo iniciar sesión: '+(err?.message||'Error desconocido')}finally{$('login-button').disabled=false}});
-async function logout(){await supabase.auth.signOut();$('password').value='';$('login-message').textContent='';$('business-list').replaceChildren();$('employee-business').replaceChildren(new Option('Selecciona un negocio',''));$('employee-message').textContent='';closePromotion();studioBusinesses=[];studioLoadToken++;$('studio-business').replaceChildren(new Option('Selecciona un negocio',''));$('qr-business').replaceChildren(new Option('Selecciona un negocio',''));renderBusinessQR();clearAnalytics();$('analytics-business').replaceChildren(new Option('Selecciona un negocio',''));++reportLoadToken;$('report-business').replaceChildren(new Option('Selecciona un negocio',''));resetReportFields();$('report-message').textContent='';resetStudio();updateStudioPreview();show('login')}
+async function logout(){await supabase.auth.signOut();$('password').value='';$('login-message').textContent='';$('business-list').replaceChildren();$('employee-business').replaceChildren(new Option('Selecciona un negocio',''));++ownersLoadToken;$('owners-business').replaceChildren(new Option('Selecciona un negocio',''));$('owners-list').replaceChildren();$('owners-email').value='';$('owners-message').textContent='';$('owners-list-message').textContent='';$('employee-message').textContent='';closePromotion();studioBusinesses=[];studioLoadToken++;$('studio-business').replaceChildren(new Option('Selecciona un negocio',''));$('qr-business').replaceChildren(new Option('Selecciona un negocio',''));renderBusinessQR();clearAnalytics();$('analytics-business').replaceChildren(new Option('Selecciona un negocio',''));++reportLoadToken;$('report-business').replaceChildren(new Option('Selecciona un negocio',''));resetReportFields();$('report-message').textContent='';resetStudio();updateStudioPreview();show('login')}
 $('logout').addEventListener('click',logout);$('blocked-logout').addEventListener('click',logout);$('refresh-businesses').addEventListener('click',loadBusinesses);
 await verify();
 </script></body></html>
