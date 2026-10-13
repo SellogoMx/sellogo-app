@@ -11,6 +11,8 @@
 .qr-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}.qr-stage{background:#101014;border:1px solid #ff872f55;border-radius:22px;padding:20px;text-align:center}.qr-white{background:#fff;border-radius:16px;padding:18px;display:inline-flex;align-items:center;justify-content:center;max-width:100%;margin:10px auto}.qr-white canvas,.qr-white img{max-width:100%;height:auto!important}.qr-link{display:block;overflow-wrap:anywhere;color:#ffae73;font-size:13px;margin:12px 0}.qr-tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}.qr-tools button{flex:1;min-width:130px}.qr-state{color:#ffd38b;font-size:13px}.qr-stage h3{margin:5px 0}.qr-stage .qr-business{color:#ffae73;font-size:20px;font-weight:800}@media(max-width:800px){.qr-layout{grid-template-columns:1fr}}
 
 .report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}.report-check{display:flex;align-items:center;gap:10px;margin-top:17px;color:#e6e6ea;font-size:14px}.report-check input{width:19px;height:19px;margin:0;accent-color:#ff872f}.report-check input:disabled{opacity:.45}.report-lock{color:#d9ac8e;font-size:12px;margin:10px 0 0}@media(max-width:700px){.report-grid{grid-template-columns:1fr}}
+
+.analytics-filters{display:grid;grid-template-columns:1fr 1fr;gap:18px}.analytics-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px}.analytics-kpi{background:#121217;border:1px solid #ffffff24;border-radius:16px;padding:20px;min-width:0}.analytics-kpi .label{font-size:13px;color:#b6b6bf}.analytics-kpi .number{font-size:36px;font-weight:850;margin:10px 0 0;color:#fff;font-variant-numeric:tabular-nums}.analytics-chart{margin-top:20px;border:1px solid #ffffff24;border-radius:16px;padding:20px;background:#141419}.analytics-bar-label{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:16px 0 7px}.analytics-track{height:13px;border-radius:99px;background:#ffffff18;overflow:hidden}.analytics-fill{height:100%;width:0;background:linear-gradient(90deg,#ff872f,#ffc08a);border-radius:99px;transition:width .35s ease}.analytics-note{font-size:12px;color:#a6a6b0;margin-top:15px}@media(max-width:700px){.analytics-filters,.analytics-kpis{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main class="shell">
@@ -27,6 +29,30 @@
 <div class="studio-preview"><h3>Vista previa</h3><div id="studio-preview-card" class="preview-card"><div class="preview-top"><div><div class="sub" id="studio-preview-label">TARJETA DIGITAL</div><div class="preview-title" id="studio-preview-business">Selecciona una empresa</div></div><img id="studio-preview-logo" class="preview-logo hidden" alt="Logotipo del negocio"></div><div><div class="preview-stamps" id="studio-preview-stamps"></div><div class="preview-reward" id="studio-preview-reward">Tu recompensa aparecerá aquí</div></div></div><p class="studio-note">Esta es una vista previa del diseño. Los diseños guardados se muestran en las tarjetas digitales de los clientes.</p></div></div></section>
 <section class="panel" id="qr-panel" aria-labelledby="qr-title"><div class="sub">CAPTACIÓN DE CLIENTES</div><h2 id="qr-title">▦ Generador de QR · SelloGo</h2><p>Genera el código QR exclusivo de cada negocio para registrar tarjetas digitales. El código apunta a una URL fija; no cambia al actualizar el diseño o las recompensas.</p><div class="qr-layout"><div><label class="field" for="qr-business">Selecciona el negocio<select id="qr-business"><option value="">Selecciona un negocio</option></select></label><p id="qr-state" class="qr-state" role="status">Selecciona un negocio para crear su QR.</p><label class="field" for="qr-url">Enlace del cliente<input id="qr-url" readonly placeholder="Selecciona un negocio"></label><div class="qr-tools"><button id="qr-copy" class="secondary" type="button" disabled>Copiar enlace</button><button id="qr-open" class="secondary" type="button" disabled>Abrir enlace</button><button id="qr-download" class="primary" style="margin-top:0" type="button" disabled>↓ Descargar QR PNG</button></div><p id="qr-message" class="message" role="status"></p><p class="hint">Los negocios suspendidos pueden conservar su QR, pero Supabase bloquea los registros nuevos. No cambies el slug o la dirección de la aplicación después de imprimir.</p></div><div class="qr-stage"><div class="sub">CÓDIGO QR EXCLUSIVO</div><h3 id="qr-business-name">SelloGo</h3><div class="qr-white" id="qr-image"><span style="color:#555;font-size:13px">Selecciona un negocio</span></div><div class="qr-business">SELLO<span style="color:#ff872f">GO</span></div><div class="sub">CADA COMPRA CUENTA</div></div></div></section>
 
+
+<section class="panel" id="analytics-panel" aria-labelledby="analytics-title">
+ <div class="sub">SELLOGO ANALYTICS · ESTADÍSTICAS REALES</div>
+ <h2 id="analytics-title">📊 Dashboard mensual</h2>
+ <p>Consulta la actividad registrada de cada negocio. Solo el administrador general puede ver estos resultados.</p>
+ <div class="analytics-filters">
+  <label class="field" for="analytics-business">Negocio<select id="analytics-business"><option value="">Selecciona un negocio</option></select></label>
+  <label class="field" for="analytics-month">Mes del reporte<input id="analytics-month" type="month"></label>
+ </div>
+ <div class="actions"><button class="primary" id="analytics-refresh" type="button">Consultar estadísticas</button><p class="message" id="analytics-message" role="status" aria-live="polite">Selecciona un negocio y un mes.</p></div>
+ <div id="analytics-results" class="hidden">
+  <div class="analytics-kpis">
+   <div class="analytics-kpi"><div class="label">✦ Sellos entregados</div><div class="number" id="analytics-stamps">0</div></div>
+   <div class="analytics-kpi"><div class="label">🎁 Recompensas canjeadas</div><div class="number" id="analytics-redemptions">0</div></div>
+   <div class="analytics-kpi"><div class="label">👥 Clientes con actividad</div><div class="number" id="analytics-active">0</div></div>
+  </div>
+  <div class="analytics-chart">
+   <strong>Actividad del mes</strong>
+   <div class="analytics-bar-label"><span>Sellos entregados</span><span id="analytics-stamps-label">0</span></div><div class="analytics-track"><div id="analytics-stamps-bar" class="analytics-fill"></div></div>
+   <div class="analytics-bar-label"><span>Canjes realizados</span><span id="analytics-redemptions-label">0</span></div><div class="analytics-track"><div id="analytics-redemptions-bar" class="analytics-fill"></div></div>
+   <p class="analytics-note">Clientes con actividad = tarjetas distintas con al menos un movimiento en el mes. No representa nuevos registros. Los totales se calculan según la hora de Mérida.</p>
+  </div>
+ </div>
+</section>
 <section class="panel" id="report-panel" aria-labelledby="report-title">
  <div class="sub">SELLOGO ANALYTICS · CONFIGURACIÓN</div><h2 id="report-title">✉ Contactos y reportes automáticos</h2>
  <p>Registra los datos de contacto de cada negocio. Los envíos mensuales todavía no están activos.</p>
@@ -66,6 +92,7 @@ let selectedBusiness=null;
 let studioBusinesses=[];
 let studioLoadToken=0;
 let studioEditVersion=0;
+let analyticsLoadToken=0;
 let reportLoadToken=0;
 let reportConsentDate=null;
 function show(id){for(const section of ['login','dashboard','blocked','loading'])$(section).classList.toggle('hidden',section!==id)}
@@ -82,10 +109,12 @@ async function loadBusinesses(){
    const studioSelector=$('studio-business'),studioPrevious=studioSelector.value;
     const qrSelector=$('qr-business'),qrPrevious=qrSelector.value;
     const reportSelector=$('report-business'),reportPrevious=reportSelector.value;
+     const analyticsSelector=$('analytics-business'),analyticsPrevious=analyticsSelector.value;
    studioBusinesses=businesses;
    studioSelector.replaceChildren(new Option('Selecciona un negocio',''));
     qrSelector.replaceChildren(new Option('Selecciona un negocio',''));
     reportSelector.replaceChildren(new Option('Selecciona un negocio',''));
+     analyticsSelector.replaceChildren(new Option('Selecciona un negocio',''));
   selector.replaceChildren(new Option('Selecciona un negocio',''));
   for(const b of businesses){
    const card=document.createElement('article');card.className='business';
@@ -120,10 +149,12 @@ async function loadBusinesses(){
    tools.append(select,save);card.append(tools,feedback);
    const edit=document.createElement('button');edit.type='button';edit.className='edit-btn';
    edit.textContent='✎ Editar promoción';edit.addEventListener('click',()=>openPromotion(b));card.append(edit);
-   list.append(card);selector.add(new Option(b.nombre,b.id));studioSelector.add(new Option(b.nombre,b.id));qrSelector.add(new Option(b.nombre,b.id));reportSelector.add(new Option(b.nombre,b.id));
+   list.append(card);selector.add(new Option(b.nombre,b.id));studioSelector.add(new Option(b.nombre,b.id));qrSelector.add(new Option(b.nombre,b.id));reportSelector.add(new Option(b.nombre,b.id));analyticsSelector.add(new Option(b.nombre,b.id));
   }
   if(businesses.some(b=>b.id===previous))selector.value=previous;
-   if(businesses.some(b=>b.id===reportPrevious))reportSelector.value=reportPrevious;
+   if(businesses.some(b=>b.id===analyticsPrevious))analyticsSelector.value=analyticsPrevious;
+    else {analyticsSelector.value='';clearAnalytics();}
+    if(businesses.some(b=>b.id===reportPrevious))reportSelector.value=reportPrevious;
    else {reportSelector.value='';resetReportFields();}
    if(businesses.some(b=>b.id===qrPrevious))qrSelector.value=qrPrevious;
     else qrSelector.value='';
@@ -240,6 +271,49 @@ $('qr-download').addEventListener('click',()=>{
 });
 
 
+
+// Analytics: RPC protegida por sesión de administrador, sin acceso directo a movimientos.
+function clearAnalytics(){
+ ++analyticsLoadToken;
+ $('analytics-results').classList.add('hidden');
+ $('analytics-message').classList.remove('success');
+ $('analytics-message').textContent='Selecciona un negocio y un mes.';
+}
+$('analytics-month').value=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Merida',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7);
+$('analytics-business').addEventListener('change',clearAnalytics);
+$('analytics-month').addEventListener('change',clearAnalytics);
+$('analytics-refresh').addEventListener('click',async()=>{
+ const id=$('analytics-business').value,month=$('analytics-month').value;
+ const message=$('analytics-message');
+ if(!id){message.textContent='Selecciona un negocio.';return;}
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)){message.textContent='Selecciona un mes válido.';return;}
+ const token=++analyticsLoadToken,button=$('analytics-refresh');
+ button.disabled=true;message.classList.remove('success');message.textContent='Consultando datos reales…';
+ $('analytics-results').classList.add('hidden');
+ try{
+  const {data,error}=await supabase.rpc('sellogo_analytics_mensual',{p_negocio_id:id,p_mes:month+'-01'});
+  if(token!==analyticsLoadToken||$('analytics-business').value!==id||$('analytics-month').value!==month)return;
+  if(error)throw error;
+  const result=Array.isArray(data)?data[0]:data;
+  if(!result)throw Error('Supabase no devolvió estadísticas para esta consulta.');
+  const stamps=Number(result.sellos_entregados),redemptions=Number(result.recompensas_canjeadas),active=Number(result.clientes_registrados);
+  if(![stamps,redemptions,active].every(n=>Number.isSafeInteger(n)&&n>=0))throw Error('Los datos recibidos no tienen un formato válido.');
+  const format=n=>n.toLocaleString('es-MX');
+  $('analytics-stamps').textContent=format(stamps);
+  $('analytics-redemptions').textContent=format(redemptions);
+  $('analytics-active').textContent=format(active);
+  $('analytics-stamps-label').textContent=format(stamps);
+  $('analytics-redemptions-label').textContent=format(redemptions);
+  const max=Math.max(stamps,redemptions,1);
+  $('analytics-stamps-bar').style.width=(stamps/max*100)+'%';
+  $('analytics-redemptions-bar').style.width=(redemptions/max*100)+'%';
+  $('analytics-results').classList.remove('hidden');
+  message.textContent='✓ Estadísticas consultadas en Supabase.';message.classList.add('success');
+ }catch(e){
+  if(token===analyticsLoadToken)message.textContent='No se pudieron consultar las estadísticas: '+(e?.message||'Error desconocido');
+ }finally{button.disabled=false;}
+});
+
 // Contactos para reportes: acceso exclusivamente mediante RPC de administrador.
 function resetReportFields(){
  reportConsentDate=null;
@@ -344,7 +418,7 @@ $('business-form').addEventListener('submit',async e=>{e.preventDefault();const 
 $('employee-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('employee-button');button.disabled=true;$('employee-message').classList.remove('success');$('employee-message').textContent='Asignando empleado…';try{const negocio=$('employee-business').value,correo=$('employee-email').value.trim().toLowerCase(),rol=$('employee-role').value;if(!negocio)throw Error('Selecciona un negocio.');if(!correo)throw Error('Escribe el correo del empleado.');const {data,error}=await supabase.rpc('sellogo_asignar_empleado',{p_negocio_id:negocio,p_correo:correo,p_rol:rol});if(error)throw error;$('employee-message').textContent='✓ '+(data||'Empleado asignado correctamente.');$('employee-message').classList.add('success');$('employee-email').value='';$('employee-role').value='empleado'}catch(err){$('employee-message').textContent='No se pudo asignar: '+(err?.message||'Error desconocido')}finally{button.disabled=false}});
 async function verify(){show('loading');try{const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user){show('login');return}const {data,error}=await supabase.from('administradores').select('usuario_id').eq('usuario_id',user.id).maybeSingle();if(error)throw error;if(!data){$('blocked-message').textContent='La cuenta '+(user.email||'actual')+' no está autorizada para administrar SelloGo.';show('blocked');return}$('admin-email').textContent=user.email||'Administrador';show('dashboard');await loadBusinesses()}catch(e){show('login');$('login-message').textContent='No se pudo comprobar el acceso: '+(e?.message||'Error de conexión')}}
 $('login-form').addEventListener('submit',async e=>{e.preventDefault();$('login-button').disabled=true;$('login-message').textContent='Iniciando sesión…';try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;$('password').value='';$('login-message').textContent='';await verify()}catch(err){$('login-message').textContent='No se pudo iniciar sesión: '+(err?.message||'Error desconocido')}finally{$('login-button').disabled=false}});
-async function logout(){await supabase.auth.signOut();$('password').value='';$('login-message').textContent='';$('business-list').replaceChildren();$('employee-business').replaceChildren(new Option('Selecciona un negocio',''));$('employee-message').textContent='';closePromotion();studioBusinesses=[];studioLoadToken++;$('studio-business').replaceChildren(new Option('Selecciona un negocio',''));$('qr-business').replaceChildren(new Option('Selecciona un negocio',''));renderBusinessQR();++reportLoadToken;$('report-business').replaceChildren(new Option('Selecciona un negocio',''));resetReportFields();$('report-message').textContent='';resetStudio();updateStudioPreview();show('login')}
+async function logout(){await supabase.auth.signOut();$('password').value='';$('login-message').textContent='';$('business-list').replaceChildren();$('employee-business').replaceChildren(new Option('Selecciona un negocio',''));$('employee-message').textContent='';closePromotion();studioBusinesses=[];studioLoadToken++;$('studio-business').replaceChildren(new Option('Selecciona un negocio',''));$('qr-business').replaceChildren(new Option('Selecciona un negocio',''));renderBusinessQR();clearAnalytics();$('analytics-business').replaceChildren(new Option('Selecciona un negocio',''));++reportLoadToken;$('report-business').replaceChildren(new Option('Selecciona un negocio',''));resetReportFields();$('report-message').textContent='';resetStudio();updateStudioPreview();show('login')}
 $('logout').addEventListener('click',logout);$('blocked-logout').addEventListener('click',logout);$('refresh-businesses').addEventListener('click',loadBusinesses);
 await verify();
 </script></body></html>
