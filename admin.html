@@ -9,6 +9,8 @@
 .studio-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,.85fr);gap:28px;align-items:start}.studio-preview{position:sticky;top:18px}.preview-card{border-radius:24px;padding:26px;min-height:350px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background-color:#101014;background-size:cover;background-position:center;border:1px solid #ffffff33;box-shadow:0 18px 42px #0005}.preview-top{display:flex;justify-content:space-between;align-items:start;gap:14px}.preview-logo{width:70px;height:70px;object-fit:contain;background:#ffffff15;border-radius:14px;padding:6px}.preview-title{font-size:23px;font-weight:850;overflow-wrap:anywhere}.preview-stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:24px 0}.preview-stamp{aspect-ratio:1;border:2px dashed currentColor;border-radius:50%;display:grid;place-items:center;font-size:23px;background:#ffffff10}.preview-reward{font-weight:700}.studio-status{margin-top:14px}.studio-help{font-size:12px;color:#b4b4bd}.studio-color{height:52px;padding:5px;cursor:pointer}.studio-preview h3{margin:0 0 12px}.studio-note{color:#ffbd87;font-size:13px;margin-top:14px}@media(max-width:800px){.studio-grid{grid-template-columns:1fr}.studio-preview{position:static}}
 
 .qr-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}.qr-stage{background:#101014;border:1px solid #ff872f55;border-radius:22px;padding:20px;text-align:center}.qr-white{background:#fff;border-radius:16px;padding:18px;display:inline-flex;align-items:center;justify-content:center;max-width:100%;margin:10px auto}.qr-white canvas,.qr-white img{max-width:100%;height:auto!important}.qr-link{display:block;overflow-wrap:anywhere;color:#ffae73;font-size:13px;margin:12px 0}.qr-tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}.qr-tools button{flex:1;min-width:130px}.qr-state{color:#ffd38b;font-size:13px}.qr-stage h3{margin:5px 0}.qr-stage .qr-business{color:#ffae73;font-size:20px;font-weight:800}@media(max-width:800px){.qr-layout{grid-template-columns:1fr}}
+
+.report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}.report-check{display:flex;align-items:center;gap:10px;margin-top:17px;color:#e6e6ea;font-size:14px}.report-check input{width:19px;height:19px;margin:0;accent-color:#ff872f}.report-check input:disabled{opacity:.45}.report-lock{color:#d9ac8e;font-size:12px;margin:10px 0 0}@media(max-width:700px){.report-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main class="shell">
@@ -24,6 +26,23 @@
 <div class="studio-grid"><form id="studio-form"><label class="field">Empresa<select id="studio-business" required><option value="">Selecciona un negocio</option></select></label><label class="field">Nombre del diseño<input id="studio-name" required maxlength="100" value="Diseño personalizado"></label><div class="formgrid"><label class="field">Color principal<input id="studio-primary" class="studio-color" type="color" value="#ff872f"></label><label class="field">Color secundario<input id="studio-secondary" class="studio-color" type="color" value="#101014"></label><label class="field">Color del texto<input id="studio-text" class="studio-color" type="color" value="#ffffff"></label><label class="field">Icono del sello<input id="studio-icon" maxlength="16" value="⭐" required></label></div><label class="field">Tipografía<select id="studio-font"><option value="Inter">Inter</option><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Verdana">Verdana</option><option value="Trebuchet MS">Trebuchet MS</option></select></label><label class="field">URL del logotipo<input id="studio-logo" type="url" maxlength="2000" placeholder="https://.../logo.png"></label><label class="field">URL del fondo<input id="studio-background" type="url" maxlength="2000" placeholder="https://.../fondo.jpg"></label><p class="studio-help">Por ahora utiliza enlaces HTTPS públicos de imágenes. Más adelante incorporaremos la subida directa de archivos.</p><div class="actions"><button id="studio-save" class="primary" type="submit">Guardar diseño exclusivo</button><p id="studio-message" class="message" role="status"></p></div></form>
 <div class="studio-preview"><h3>Vista previa</h3><div id="studio-preview-card" class="preview-card"><div class="preview-top"><div><div class="sub" id="studio-preview-label">TARJETA DIGITAL</div><div class="preview-title" id="studio-preview-business">Selecciona una empresa</div></div><img id="studio-preview-logo" class="preview-logo hidden" alt="Logotipo del negocio"></div><div><div class="preview-stamps" id="studio-preview-stamps"></div><div class="preview-reward" id="studio-preview-reward">Tu recompensa aparecerá aquí</div></div></div><p class="studio-note">Esta es una vista previa del diseño. Los diseños guardados se muestran en las tarjetas digitales de los clientes.</p></div></div></section>
 <section class="panel" id="qr-panel" aria-labelledby="qr-title"><div class="sub">CAPTACIÓN DE CLIENTES</div><h2 id="qr-title">▦ Generador de QR · SelloGo</h2><p>Genera el código QR exclusivo de cada negocio para registrar tarjetas digitales. El código apunta a una URL fija; no cambia al actualizar el diseño o las recompensas.</p><div class="qr-layout"><div><label class="field" for="qr-business">Selecciona el negocio<select id="qr-business"><option value="">Selecciona un negocio</option></select></label><p id="qr-state" class="qr-state" role="status">Selecciona un negocio para crear su QR.</p><label class="field" for="qr-url">Enlace del cliente<input id="qr-url" readonly placeholder="Selecciona un negocio"></label><div class="qr-tools"><button id="qr-copy" class="secondary" type="button" disabled>Copiar enlace</button><button id="qr-open" class="secondary" type="button" disabled>Abrir enlace</button><button id="qr-download" class="primary" style="margin-top:0" type="button" disabled>↓ Descargar QR PNG</button></div><p id="qr-message" class="message" role="status"></p><p class="hint">Los negocios suspendidos pueden conservar su QR, pero Supabase bloquea los registros nuevos. No cambies el slug o la dirección de la aplicación después de imprimir.</p></div><div class="qr-stage"><div class="sub">CÓDIGO QR EXCLUSIVO</div><h3 id="qr-business-name">SelloGo</h3><div class="qr-white" id="qr-image"><span style="color:#555;font-size:13px">Selecciona un negocio</span></div><div class="qr-business">SELLO<span style="color:#ff872f">GO</span></div><div class="sub">CADA COMPRA CUENTA</div></div></div></section>
+
+<section class="panel" id="report-panel" aria-labelledby="report-title">
+ <div class="sub">SELLOGO ANALYTICS · CONFIGURACIÓN</div><h2 id="report-title">✉ Contactos y reportes automáticos</h2>
+ <p>Registra los datos de contacto de cada negocio. Los envíos mensuales todavía no están activos.</p>
+ <form id="report-form">
+  <label class="field" for="report-business">Negocio<select id="report-business" required><option value="">Selecciona un negocio</option></select></label>
+  <div class="report-grid">
+   <label class="field" for="report-email">Correo para reportes<input id="report-email" type="email" maxlength="254" placeholder="reportes@negocio.com" autocomplete="off"></label>
+   <label class="field" for="report-whatsapp">WhatsApp (formato internacional)<input id="report-whatsapp" type="tel" maxlength="16" placeholder="+529991234567" autocomplete="off"></label>
+  </div>
+  <label class="report-check"><input id="report-send-email" type="checkbox"> Enviar reporte por correo electrónico</label>
+  <label class="report-check"><input id="report-send-whatsapp" type="checkbox" disabled> Enviar reporte por WhatsApp</label>
+  <p id="report-consent" class="report-lock">🔒 WhatsApp requiere registrar previamente el consentimiento del destinatario. Próximamente habilitaremos ese registro.</p>
+  <div class="actions"><button class="primary" id="report-save" type="submit">Guardar contactos</button><p id="report-message" class="message" role="status" aria-live="polite"></p></div>
+ </form>
+ <p class="hint">Guardar esta configuración no envía mensajes. El envío automático por correo y WhatsApp se conectará en una etapa posterior.</p>
+</section>
 <section class="panel" aria-labelledby="employee-title"><div class="sub">ACCESOS POR EMPRESA</div><h2 id="employee-title">Gestionar empleados <span style="color:#ff872f">+</span></h2><p>Asigna un trabajador que ya tenga una cuenta registrada en Supabase Auth. Esta acción no crea cuentas ni envía invitaciones.</p><form id="employee-form"><div class="formgrid"><label class="field">Negocio<select id="employee-business" required><option value="">Selecciona un negocio</option></select></label><label class="field">Correo del empleado<input id="employee-email" type="email" required maxlength="254" autocomplete="off" placeholder="empleado@ejemplo.com"></label><label class="field">Rol<select id="employee-role" required><option value="empleado">Empleado</option><option value="administrador">Administrador del negocio</option></select></label></div><p class="hint">El rol «Administrador del negocio» no otorga acceso al panel general de SelloGo. Si la persona ya está asignada a ese negocio, su rol se actualizará.</p><div class="actions"><button id="employee-button" class="primary" type="submit">+ Asignar empleado</button><p id="employee-message" class="message" role="status"></p></div></form></section>
 <div class="notice">ℹ La suspensión se verifica en las funciones de sellos y canjes configuradas en Supabase. Revisa también cualquier nueva función de operaciones antes de publicarla.</div><div class="notice">✓ Acceso administrativo verificado. Puedes registrar negocios, editar promociones y asignar empleados existentes. Las invitaciones por correo y la consulta de empleados asignados se incorporarán más adelante.</div>
 </section>
@@ -40,6 +59,8 @@ let selectedBusiness=null;
 let studioBusinesses=[];
 let studioLoadToken=0;
 let studioEditVersion=0;
+let reportLoadToken=0;
+let reportConsentDate=null;
 function show(id){for(const section of ['login','dashboard','blocked','loading'])$(section).classList.toggle('hidden',section!==id)}
 function addLine(parent,label,value){const line=document.createElement('p');line.className='details';const strong=document.createElement('strong');strong.textContent=label+' ';line.append(strong,document.createTextNode(String(value??'')));parent.append(line)}
 async function loadBusinesses(){
@@ -53,9 +74,11 @@ async function loadBusinesses(){
   const selector=$('employee-business'),previous=selector.value;
    const studioSelector=$('studio-business'),studioPrevious=studioSelector.value;
     const qrSelector=$('qr-business'),qrPrevious=qrSelector.value;
+    const reportSelector=$('report-business'),reportPrevious=reportSelector.value;
    studioBusinesses=businesses;
    studioSelector.replaceChildren(new Option('Selecciona un negocio',''));
     qrSelector.replaceChildren(new Option('Selecciona un negocio',''));
+    reportSelector.replaceChildren(new Option('Selecciona un negocio',''));
   selector.replaceChildren(new Option('Selecciona un negocio',''));
   for(const b of businesses){
    const card=document.createElement('article');card.className='business';
@@ -90,10 +113,15 @@ async function loadBusinesses(){
    tools.append(select,save);card.append(tools,feedback);
    const edit=document.createElement('button');edit.type='button';edit.className='edit-btn';
    edit.textContent='✎ Editar promoción';edit.addEventListener('click',()=>openPromotion(b));card.append(edit);
-   list.append(card);selector.add(new Option(b.nombre,b.id));studioSelector.add(new Option(b.nombre,b.id));qrSelector.add(new Option(b.nombre,b.id));
+   list.append(card);selector.add(new Option(b.nombre,b.id));studioSelector.add(new Option(b.nombre,b.id));qrSelector.add(new Option(b.nombre,b.id));reportSelector.add(new Option(b.nombre,b.id));
   }
   if(businesses.some(b=>b.id===previous))selector.value=previous;
-   if(businesses.some(b=>b.id===studioPrevious))studioSelector.value=studioPrevious;
+   if(businesses.some(b=>b.id===reportPrevious))reportSelector.value=reportPrevious;
+   else {reportSelector.value='';resetReportFields();}
+   if(businesses.some(b=>b.id===qrPrevious))qrSelector.value=qrPrevious;
+    else qrSelector.value='';
+    renderBusinessQR();
+    if(businesses.some(b=>b.id===studioPrevious))studioSelector.value=studioPrevious;
    else {studioSelector.value='';resetStudio();}
    updateStudioPreview();
   $('list-message').textContent=businesses.length?'':'Todavía no hay negocios registrados.';
@@ -204,6 +232,67 @@ $('qr-download').addEventListener('click',()=>{
  }catch(e){$('qr-message').textContent='No se pudo descargar: '+(e?.message||'Error desconocido')}
 });
 
+
+// Contactos para reportes: acceso exclusivamente mediante RPC de administrador.
+function resetReportFields(){
+ reportConsentDate=null;
+ $('report-email').value='';$('report-whatsapp').value='';
+ $('report-send-email').checked=false;
+ $('report-send-whatsapp').checked=false;
+ $('report-send-whatsapp').disabled=true;
+ $('report-consent').textContent='🔒 WhatsApp requiere registrar previamente el consentimiento del destinatario. Próximamente habilitaremos ese registro.';
+}
+async function loadReportContact(){
+ const id=$('report-business').value,token=++reportLoadToken;
+ resetReportFields();$('report-message').classList.remove('success');
+ $('report-message').textContent=id?'Cargando contacto…':'';
+ if(!id)return;
+ const {data,error}=await supabase.rpc('sellogo_consultar_contacto_reporte',{p_negocio_id:id});
+ if(token!==reportLoadToken||$('report-business').value!==id)return;
+ if(error){$('report-message').textContent='No se pudo consultar: '+error.message;return;}
+ const row=Array.isArray(data)?data[0]:data;
+ if(row){
+  $('report-email').value=row.correo||'';
+  $('report-whatsapp').value=row.whatsapp||'';
+  $('report-send-email').checked=Boolean(row.enviar_correo);
+  reportConsentDate=row.consentimiento_whatsapp_en||null;
+  $('report-send-whatsapp').disabled=!reportConsentDate;
+  $('report-send-whatsapp').checked=Boolean(row.enviar_whatsapp&&reportConsentDate);
+  $('report-consent').textContent=reportConsentDate?'✓ Autorización de WhatsApp registrada. Si cambias el número, deberás obtener una nueva autorización.':'🔒 WhatsApp requiere consentimiento previo. El registro de autorización se habilitará en el siguiente paso.';
+ }
+ $('report-message').textContent=row?'✓ Contacto cargado.':'Este negocio aún no tiene contactos guardados.';
+}
+$('report-business').addEventListener('change',loadReportContact);
+$('report-whatsapp').addEventListener('input',()=>{
+ // Un número distinto no puede heredar el consentimiento del número anterior.
+ $('report-send-whatsapp').checked=false;
+ $('report-send-whatsapp').disabled=true;
+ $('report-consent').textContent='🔒 Si cambias el número, deberás registrar su autorización antes de activar WhatsApp.';
+});
+$('report-form').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const id=$('report-business').value,button=$('report-save');
+ if(!id){$('report-message').textContent='Selecciona un negocio.';return;}
+ button.disabled=true;$('report-message').classList.remove('success');$('report-message').textContent='Guardando contactos…';
+ try{
+  const correo=$('report-email').value.trim().toLowerCase()||null;
+  const whatsapp=$('report-whatsapp').value.trim()||null;
+  const enviarCorreo=$('report-send-email').checked;
+  const enviarWhatsapp=$('report-send-whatsapp').checked;
+  if(whatsapp&&!/^\+[1-9][0-9]{7,14}$/.test(whatsapp))throw Error('Escribe WhatsApp con código de país, por ejemplo +529991234567.');
+  if(enviarCorreo&&!correo)throw Error('Ingresa un correo antes de activar su envío.');
+  if(enviarWhatsapp&&!reportConsentDate)throw Error('Falta autorización para WhatsApp.');
+  const {error}=await supabase.rpc('sellogo_guardar_contacto_reporte',{
+   p_negocio_id:id,p_correo:correo,p_whatsapp:whatsapp,
+   p_enviar_correo:enviarCorreo,p_enviar_whatsapp:enviarWhatsapp
+  });
+  if(error)throw error;
+  await loadReportContact();
+  if($('report-business').value===id){$('report-message').textContent='✓ Contactos guardados en Supabase. Los envíos automáticos aún no están activados.';$('report-message').classList.add('success');}
+ }catch(err){$('report-message').textContent='No se pudo guardar: '+(err?.message||'Error desconocido');}
+ finally{button.disabled=false;}
+});
+
 function openPromotion(b){selectedBusiness={id:b.id,nombre:b.nombre};$('edit-business-name').textContent=b.nombre;$('edit-stamps').value=b.sellos_objetivo;$('edit-reward').value=b.recompensa;$('edit-message').textContent='';$('edit-message').classList.remove('success');$('edit-panel').classList.remove('hidden');$('edit-panel').scrollIntoView({behavior:'smooth',block:'start'})}
 function closePromotion(){$('edit-panel').classList.add('hidden');selectedBusiness=null}
 $('cancel-promotion').addEventListener('click',closePromotion);
@@ -212,7 +301,7 @@ $('business-form').addEventListener('submit',async e=>{e.preventDefault();const 
 $('employee-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('employee-button');button.disabled=true;$('employee-message').classList.remove('success');$('employee-message').textContent='Asignando empleado…';try{const negocio=$('employee-business').value,correo=$('employee-email').value.trim().toLowerCase(),rol=$('employee-role').value;if(!negocio)throw Error('Selecciona un negocio.');if(!correo)throw Error('Escribe el correo del empleado.');const {data,error}=await supabase.rpc('sellogo_asignar_empleado',{p_negocio_id:negocio,p_correo:correo,p_rol:rol});if(error)throw error;$('employee-message').textContent='✓ '+(data||'Empleado asignado correctamente.');$('employee-message').classList.add('success');$('employee-email').value='';$('employee-role').value='empleado'}catch(err){$('employee-message').textContent='No se pudo asignar: '+(err?.message||'Error desconocido')}finally{button.disabled=false}});
 async function verify(){show('loading');try{const {data:{user},error:authError}=await supabase.auth.getUser();if(authError||!user){show('login');return}const {data,error}=await supabase.from('administradores').select('usuario_id').eq('usuario_id',user.id).maybeSingle();if(error)throw error;if(!data){$('blocked-message').textContent='La cuenta '+(user.email||'actual')+' no está autorizada para administrar SelloGo.';show('blocked');return}$('admin-email').textContent=user.email||'Administrador';show('dashboard');await loadBusinesses()}catch(e){show('login');$('login-message').textContent='No se pudo comprobar el acceso: '+(e?.message||'Error de conexión')}}
 $('login-form').addEventListener('submit',async e=>{e.preventDefault();$('login-button').disabled=true;$('login-message').textContent='Iniciando sesión…';try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;$('password').value='';$('login-message').textContent='';await verify()}catch(err){$('login-message').textContent='No se pudo iniciar sesión: '+(err?.message||'Error desconocido')}finally{$('login-button').disabled=false}});
-async function logout(){await supabase.auth.signOut();$('password').value='';$('login-message').textContent='';$('business-list').replaceChildren();$('employee-business').replaceChildren(new Option('Selecciona un negocio',''));$('employee-message').textContent='';closePromotion();studioBusinesses=[];studioLoadToken++;$('studio-business').replaceChildren(new Option('Selecciona un negocio',''));$('qr-business').replaceChildren(new Option('Selecciona un negocio',''));renderBusinessQR();resetStudio();updateStudioPreview();show('login')}
+async function logout(){await supabase.auth.signOut();$('password').value='';$('login-message').textContent='';$('business-list').replaceChildren();$('employee-business').replaceChildren(new Option('Selecciona un negocio',''));$('employee-message').textContent='';closePromotion();studioBusinesses=[];studioLoadToken++;$('studio-business').replaceChildren(new Option('Selecciona un negocio',''));$('qr-business').replaceChildren(new Option('Selecciona un negocio',''));renderBusinessQR();++reportLoadToken;$('report-business').replaceChildren(new Option('Selecciona un negocio',''));resetReportFields();$('report-message').textContent='';resetStudio();updateStudioPreview();show('login')}
 $('logout').addEventListener('click',logout);$('blocked-logout').addEventListener('click',logout);$('refresh-businesses').addEventListener('click',loadBusinesses);
 await verify();
 </script></body></html>
