@@ -83,7 +83,7 @@
 <section id="loading" class="auth"><p>Comprobando acceso seguro…</p></section>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
 <script type="module">
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js';
@@ -313,7 +313,7 @@ $('analytics-refresh').addEventListener('click',async()=>{
   $('analytics-redemptions-bar').style.width=(redemptions/max*100)+'%';
   $('analytics-results').classList.remove('hidden');
   const negocio=studioBusinesses.find(b=>b.id===id);
-  analyticsPdfSnapshot={id,month,name:negocio?.nombre||'Negocio',stamps,redemptions,active};
+  analyticsPdfSnapshot={id,month,name:negocio?.nombre||'Negocio',slug:negocio?.slug||'negocio',stamps,redemptions,active};
   $('analytics-pdf').disabled=false;
   message.textContent='✓ Estadísticas consultadas en Supabase.';message.classList.add('success');
  }catch(e){
@@ -322,12 +322,39 @@ $('analytics-refresh').addEventListener('click',async()=>{
 });
 
 // Descarga local de PDF: usa exclusivamente la última respuesta verificada de Analytics.
-$('analytics-pdf').addEventListener('click',()=>{
+function imprimirReporte(r){
+ const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const nombre=escapeHTML(r.name);
+ const periodo=escapeHTML(new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(r.month+'-01T12:00:00Z')));
+ const max=Math.max(r.stamps,r.redemptions,1);
+ const lines=[['Sellos entregados',r.stamps],['Canjes realizados',r.redemptions]];
+ const bars=lines.map(([label,value])=>`<div class="barrow"><div>${label}: <b>${value.toLocaleString('es-MX')}</b></div><div class="track"><div class="fill" style="width:${value/max*100}%"></div></div></div>`).join('');
+ const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte SelloGo - ${nombre}</title><style>@page{size:A4;margin:0}body{margin:0;font-family:Arial,sans-serif;color:#19191f}.header{background:#19191f;color:white;padding:38px 45px}.brand{font-size:28px;font-weight:900;letter-spacing:2px}.tag{color:#ff872f;font-size:12px;letter-spacing:2px;margin-top:12px}.business{font-size:20px;margin-top:14px}.main{padding:36px 45px}.period{color:#777;margin-top:6px}.metrics{display:flex;gap:12px;margin:30px 0}.metric{background:#f4f4f6;border-radius:9px;padding:20px;flex:1;min-width:0}.num{font-size:28px;font-weight:800}.label{font-size:12px;color:#666;margin-top:7px}.barrow{margin:25px 0}.track{height:13px;border-radius:12px;background:#eee;margin-top:10px;overflow:hidden}.fill{height:100%;background:#ff872f}.note{border-top:1px solid #ddd;margin-top:35px;padding-top:20px;color:#666;font-size:12px;line-height:1.5}.footer{color:#ff872f;font-weight:800;margin-top:32px;text-align:right}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><header class="header"><div class="brand">SELLOGO</div><div class="tag">ANALYTICS · REPORTE MENSUAL</div><div class="business">${nombre}</div></header><main class="main"><h1>Resumen de actividad</h1><div class="period">${periodo}</div><div class="metrics"><div class="metric"><div class="num">${r.stamps.toLocaleString('es-MX')}</div><div class="label">Sellos entregados</div></div><div class="metric"><div class="num">${r.redemptions.toLocaleString('es-MX')}</div><div class="label">Recompensas canjeadas</div></div><div class="metric"><div class="num">${r.active.toLocaleString('es-MX')}</div><div class="label">Clientes con actividad</div></div></div><h2>Actividad del mes</h2>${bars}<div class="note">Clientes con actividad = tarjetas distintas con al menos un movimiento en el mes. No equivale a clientes nuevos.<p>Fuente: SelloGo / Supabase. Periodo calculado en horario de Mérida.</p></div><div class="footer">CADA COMPRA CUENTA</div></main></body></html>`;
+ const win=window.open('','_blank');
+ if(!win)throw Error('El navegador bloqueó la ventana del reporte. Permite las ventanas emergentes para este sitio.');
+ win.document.open();win.document.write(html);win.document.close();
+ win.focus();
+ // La impresión es iniciada por el usuario desde la nueva pestaña para evitar bloqueos.
+ return true;
+}
+async function cargarBibliotecaPDF(){
+ if(window.jspdf?.jsPDF)return true;
+ for(const url of ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js']){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src=url;script.onload=resolve;script.onerror=()=>reject(Error('No disponible'));document.head.append(script);
+   });
+   if(window.jspdf?.jsPDF)return true;
+  }catch(e){}
+ }
+ return false;
+}
+$('analytics-pdf').addEventListener('click',async()=>{
  const r=analyticsPdfSnapshot, msg=$('analytics-message');
  if(!r||r.id!==$('analytics-business').value||r.month!==$('analytics-month').value){
   msg.textContent='Consulta las estadísticas del negocio y mes antes de descargar.';return;
  }
- if(!window.jspdf?.jsPDF){msg.textContent='No se cargó la biblioteca PDF. Comprueba tu conexión y actualiza la página.';return;}
+ if(!await cargarBibliotecaPDF()){try{imprimirReporte(r);msg.textContent='La biblioteca PDF no está disponible. Se abrió el reporte: pulsa Ctrl + P y elige Guardar como PDF.';msg.classList.add('success');}catch(e){msg.textContent=e.message;}return;}
  try{
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
