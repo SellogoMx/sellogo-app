@@ -35,6 +35,7 @@ const $=id=>document.getElementById(id);
 let selectedBusiness=null;
 let studioBusinesses=[];
 let studioLoadToken=0;
+let studioEditVersion=0;
 function show(id){for(const section of ['login','dashboard','blocked','loading'])$(section).classList.toggle('hidden',section!==id)}
 function addLine(parent,label,value){const line=document.createElement('p');line.className='details';const strong=document.createElement('strong');strong.textContent=label+' ';line.append(strong,document.createTextNode(String(value??'')));parent.append(line)}
 async function loadBusinesses(){
@@ -110,24 +111,55 @@ function updateStudioPreview(){
  for(let i=0;i<n;i++){const el=document.createElement('span');el.className='preview-stamp';el.style.borderColor=primary;el.textContent=$('studio-icon').value||'⭐';holder.append(el)}
 }
 async function loadStudioDesign(){
- const id=$('studio-business').value,token=++studioLoadToken;resetStudio();$('studio-message').textContent='';updateStudioPreview();if(!id)return;
+ const id=$('studio-business').value,token=++studioLoadToken,editVersion=studioEditVersion;resetStudio();$('studio-message').textContent='';updateStudioPreview();if(!id)return;
  $('studio-message').textContent='Cargando diseño…';
  const {data,error}=await supabase.from('disenos_negocios').select('nombre_diseno,color_primario,color_secundario,color_texto,logo_url,fondo_url,icono_sello,tipografia').eq('negocio_id',id).maybeSingle();
- if(token!==studioLoadToken)return;
+ if(token!==studioLoadToken||editVersion!==studioEditVersion)return;
  if(error){$('studio-message').textContent='No se pudo cargar el diseño: '+error.message;return}
  if(data){$('studio-name').value=data.nombre_diseno||'Diseño personalizado';$('studio-primary').value=data.color_primario||'#ff872f';$('studio-secondary').value=data.color_secundario||'#101014';$('studio-text').value=data.color_texto||'#ffffff';$('studio-icon').value=data.icono_sello||'⭐';$('studio-font').value=[...$('studio-font').options].some(o=>o.value===data.tipografia)?data.tipografia:'Inter';$('studio-logo').value=data.logo_url||'';$('studio-background').value=data.fondo_url||'';}
  $('studio-message').textContent=data?'✓ Diseño existente cargado.':'Este negocio aún no tiene diseño guardado.';updateStudioPreview();
 }
 $('studio-business').addEventListener('change',loadStudioDesign);
-for(const id of ['studio-name','studio-primary','studio-secondary','studio-text','studio-icon','studio-font','studio-logo','studio-background'])$(id).addEventListener('input',updateStudioPreview);
+for(const id of ['studio-name','studio-primary','studio-secondary','studio-text','studio-icon','studio-font','studio-logo','studio-background'])$(id).addEventListener('input',()=>{studioEditVersion++;updateStudioPreview()});
 $('studio-form').addEventListener('submit',async e=>{
- e.preventDefault();const id=$('studio-business').value;if(!id){$('studio-message').textContent='Selecciona una empresa.';return}
- const button=$('studio-save');button.disabled=true;$('studio-message').classList.remove('success');$('studio-message').textContent='Guardando diseño…';
+ e.preventDefault();
+ const id=$('studio-business').value;
+ if(!id){$('studio-message').textContent='Selecciona una empresa.';return}
+ const button=$('studio-save');button.disabled=true;
+ $('studio-message').classList.remove('success');$('studio-message').textContent='Guardando y verificando diseño…';
+ const params={
+  p_negocio_id:id,
+  p_nombre_diseno:$('studio-name').value.trim(),
+  p_color_primario:$('studio-primary').value,
+  p_color_secundario:$('studio-secondary').value,
+  p_color_texto:$('studio-text').value,
+  p_logo_url:$('studio-logo').value.trim()||null,
+  p_fondo_url:$('studio-background').value.trim()||null,
+  p_icono_sello:$('studio-icon').value.trim()||'⭐',
+  p_tipografia:$('studio-font').value
+ };
  try{
-  const logo=$('studio-logo').value.trim(),background=$('studio-background').value.trim();if((logo&&!logo.startsWith('https://'))||(background&&!background.startsWith('https://')))throw Error('Las imágenes deben usar enlaces HTTPS.');
-  const {error}=await supabase.rpc('sellogo_guardar_diseno',{p_negocio_id:id,p_nombre_diseno:$('studio-name').value.trim(),p_color_primario:$('studio-primary').value,p_color_secundario:$('studio-secondary').value,p_color_texto:$('studio-text').value,p_logo_url:logo||null,p_fondo_url:background||null,p_icono_sello:$('studio-icon').value.trim()||'⭐',p_tipografia:$('studio-font').value});if(error)throw error;
-  $('studio-message').textContent='✓ Diseño guardado correctamente.';$('studio-message').classList.add('success');
- }catch(err){$('studio-message').textContent='No se pudo guardar: '+(err?.message||'Error desconocido')}finally{button.disabled=false}
+  if(!params.p_nombre_diseno)throw Error('Escribe un nombre para el diseño.');
+  if((params.p_logo_url&&!params.p_logo_url.startsWith('https://'))||(params.p_fondo_url&&!params.p_fondo_url.startsWith('https://')))throw Error('Las imágenes deben usar enlaces HTTPS.');
+  // Invalida cualquier carga anterior que pudiera sobrescribir los campos.
+  ++studioLoadToken;
+  const {error}=await supabase.rpc('sellogo_guardar_diseno',params);
+  if(error)throw error;
+  // No anunciar éxito hasta comprobar los valores persistidos.
+  const {data:stored,error:readError}=await supabase.from('disenos_negocios')
+   .select('nombre_diseno,color_primario,color_secundario,color_texto,logo_url,fondo_url,icono_sello,tipografia')
+   .eq('negocio_id',id).maybeSingle();
+  if(readError)throw Error('Se envió el diseño, pero no se pudo verificar: '+readError.message);
+  if(!stored)throw Error('No se encontró el diseño después de guardar.');
+  const fields={p_nombre_diseno:'nombre_diseno',p_color_primario:'color_primario',p_color_secundario:'color_secundario',p_color_texto:'color_texto',p_logo_url:'logo_url',p_fondo_url:'fondo_url',p_icono_sello:'icono_sello',p_tipografia:'tipografia'};
+  const mismatch=Object.entries(fields).find(([p,col])=>String(stored[col]??'').toLowerCase()!==String(params[p]??'').toLowerCase());
+  if(mismatch)throw Error('La verificación detectó una diferencia en «'+mismatch[1]+'». Comprueba que ningún otro editor esté modificando el diseño.');
+  if($('studio-business').value===id){
+   $('studio-message').textContent='✓ Diseño guardado y verificado en Supabase: '+stored.nombre_diseno;
+   $('studio-message').classList.add('success');
+  }
+ }catch(err){$('studio-message').textContent='No se pudo confirmar el guardado: '+(err?.message||'Error desconocido')}
+ finally{button.disabled=false}
 });
 
 function openPromotion(b){selectedBusiness={id:b.id,nombre:b.nombre};$('edit-business-name').textContent=b.nombre;$('edit-stamps').value=b.sellos_objetivo;$('edit-reward').value=b.recompensa;$('edit-message').textContent='';$('edit-message').classList.remove('success');$('edit-panel').classList.remove('hidden');$('edit-panel').scrollIntoView({behavior:'smooth',block:'start'})}
