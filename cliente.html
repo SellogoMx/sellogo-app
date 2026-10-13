@@ -15,6 +15,7 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const $ = id => document.getElementById(id);
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let clientRecord = null, cardRecord = null;
+let refreshingCard = false;
 function showOnly(section){['login','client-app','unlinked','error-panel'].forEach(id=>$(id).classList.toggle('hidden',id!==section));$('navbar').classList.toggle('hidden',section!=='client-app');}
 function showPage(page){['home','wallet','rewards'].forEach(id=>$(id).classList.toggle('hidden',id!==page));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));window.scrollTo({top:0,behavior:'smooth'});}
 function renderCard(){const stamps=Math.max(0,Math.min(5,Number(cardRecord.sellos)||0));const rewards=Math.max(0,Number(cardRecord.recompensas_disponibles)||0);const markup=`<div class="card"><div class="cardtop"><div><div class="cafelogo">☾ Café Luna</div><div class="sub">Tu tarjeta de fidelidad</div></div><div class="tag">MIEMBRO</div></div><div class="cups">${Array.from({length:5},(_,i)=>`<div class="cup ${i<stamps?'on':''}">☕</div>`).join('')}</div><div class="cardfoot"><span>${stamps===5?'¡Recompensa desbloqueada!':'5 cafés = 1 recompensa'}</span><span class="progress">${stamps}/5</span></div><div class="cardfoot" style="margin-top:12px"><span>Recompensas disponibles</span><strong>${rewards}</strong></div></div>`;$('homecard').innerHTML=markup;$('walletcard').innerHTML=markup;$('client-name').textContent=clientRecord.nombre||'Cliente de Café Luna';$('rewardtitle').textContent=rewards>0?'¡Tienes una recompensa disponible!':'Tu próximo café gratis te espera';$('rewardtext').textContent=rewards>0?`Tienes ${rewards} recompensa(s) para canjear en Café Luna. Muéstrale esta pantalla a un empleado.`:`Llevas ${stamps} de 5 sellos y tienes ${rewards} recompensas disponibles.`;$('summary-title').textContent=`${stamps} de 5 sellos · ${rewards} recompensa(s)`;$('summary-text').textContent='Los datos se cargaron desde tu tarjeta de fidelidad.';}
@@ -23,6 +24,31 @@ $('account-email').textContent=user.email||'Cuenta de Google';$('unlinked-email'
 const {error:registrationError}=await supabase.rpc('registrar_cliente_cafe_luna');if(registrationError)throw registrationError;
  const {data:client,error:clientError}=await supabase.from('clientes').select('id,nombre,telefono,usuario_id').eq('usuario_id',user.id).maybeSingle();if(clientError)throw clientError;if(!client){showOnly('unlinked');return}clientRecord=client;
 const {data:cards,error:cardError}=await supabase.from('tarjetas').select('id,sellos,recompensas_disponibles,cliente_id,negocio_id').eq('cliente_id',client.id).limit(1);if(cardError)throw cardError;if(!cards||cards.length===0){showOnly('unlinked');$('unlinked-email').textContent='No encontramos una tarjeta para Café Luna. Pulsa Volver a comprobar o consulta al personal.';return}cardRecord=cards[0];renderCard();showOnly('client-app');showPage('home');}
+// Consulta ligera: no vuelve a iniciar sesión ni cambia de pestaña.
+async function refreshCard(){
+  if(refreshingCard || !cardRecord || document.hidden || $('client-app').classList.contains('hidden')) return;
+  refreshingCard = true;
+  try {
+    const {data, error} = await supabase.from('tarjetas')
+      .select('id,sellos,recompensas_disponibles')
+      .eq('id',cardRecord.id).maybeSingle();
+    if(error) throw error;
+    if(!data) return;
+    const changed = Number(data.sellos) !== Number(cardRecord.sellos) ||
+      Number(data.recompensas_disponibles) !== Number(cardRecord.recompensas_disponibles);
+    if(changed){
+      cardRecord = {...cardRecord,...data};
+      renderCard();
+    }
+  } catch(err) {
+    console.warn('SelloGo: no se pudo actualizar la tarjeta', err);
+  } finally {
+    refreshingCard = false;
+  }
+}
+setInterval(refreshCard, 5000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshCard(); });
+window.addEventListener('focus', refreshCard);
 async function safeLoad(){try{await loadClient()}catch(e){showOnly('error-panel');$('error-text').textContent='No pudimos consultar tu tarjeta. '+(e?.message||'Comprueba la conexión e inténtalo de nuevo.');}}
 $('google-login').addEventListener('click',async()=>{ $('google-login').disabled=true;$('login-status').textContent='Abriendo Google…';try{const redirectTo=window.location.origin+window.location.pathname;const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(e){$('login-status').textContent='No se pudo iniciar sesión: '+(e?.message||'error desconocido');$('google-login').disabled=false;}});
 async function logout(){await supabase.auth.signOut();clientRecord=null;cardRecord=null;showOnly('login');$('google-login').disabled=false;$('login-status').textContent='Cerraste sesión.';}
