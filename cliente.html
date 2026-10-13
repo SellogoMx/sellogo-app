@@ -18,6 +18,23 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 const $ = id => document.getElementById(id);
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let clientRecord=null, cards=[], activeId=null, loading=false, refreshing=false;
+// Conservar el negocio durante el regreso desde Google OAuth.
+const qrParams=new URLSearchParams(window.location.search);
+const qrSlug=(qrParams.get('negocio')||sessionStorage.getItem('sellogo-qr-negocio')||'').trim().toLowerCase();
+if(qrSlug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(qrSlug))sessionStorage.setItem('sellogo-qr-negocio',qrSlug);
+let qrCardId=null;
+async function registerFromQR(){
+ if(!qrSlug)return null;
+ if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(qrSlug)||qrSlug.length>80)throw Error('El enlace QR no tiene un identificador válido.');
+ const {data:matches,error:lookupError}=await supabase.rpc('sellogo_buscar_negocio_qr',{p_slug:qrSlug});
+ if(lookupError)throw lookupError;
+ const negocio=Array.isArray(matches)?matches[0]:null;
+ if(!negocio)throw Error('El negocio no está disponible para registros. Comprueba que el QR sea correcto o que el negocio esté activo.');
+ const {data:cardId,error:registrationError}=await supabase.rpc('sellogo_registrar_tarjeta',{p_negocio_id:negocio.id});
+ if(registrationError)throw registrationError;
+ sessionStorage.removeItem('sellogo-qr-negocio');
+ return cardId;
+}
 const designs=new Map();
 const colorOK=x=>typeof x==='string'&&/^#[0-9a-fA-F]{6}$/.test(x);
 async function fetchDesigns(list){
@@ -44,17 +61,20 @@ function render(){const c=activeCard();if(!c)return;const n=business(c)||{};cons
 function fillSelector(){const select=$('business-select');select.replaceChildren();for(const c of cards){const n=business(c)||{};const option=document.createElement('option');option.value=c.id;option.textContent=n.nombre||'Negocio';select.append(option);}select.value=activeId;render();}
 async function loadClient(){if(loading)return;loading=true;try{const {data:{user},error:authError}=await supabase.auth.getUser();if(authError)throw authError;if(!user){clientRecord=null;cards=[];designs.clear();activeId=null;showOnly('login');return;}
  $('account-email').textContent=user.email||'Cuenta de Google';$('unlinked-email').textContent=user.email||'';
+  // La función de Supabase aplica el bloqueo a negocios suspendidos.
+  qrCardId=await registerFromQR();
  // El registro de tarjetas se hará por QR; no dar de alta Café Luna automáticamente.
  const {data:client,error:clientError}=await supabase.from('clientes').select('id,nombre,telefono,usuario_id').eq('usuario_id',user.id).maybeSingle();if(clientError)throw clientError;if(!client){showOnly('unlinked');return;}clientRecord=client;
- const {data:found,error:cardError}=await supabase.from('tarjetas').select('id,sellos,recompensas_disponibles,cliente_id,negocio_id,negocios(nombre,sellos_objetivo,recompensa)').eq('cliente_id',client.id).order('creado_en',{ascending:true});if(cardError)throw cardError;cards=found||[];await fetchDesigns(cards);if(!cards.length){showOnly('unlinked');return;}if(!cards.some(c=>c.id===activeId))activeId=cards[0].id;fillSelector();showOnly('client-app');
+ const {data:found,error:cardError}=await supabase.from('tarjetas').select('id,sellos,recompensas_disponibles,cliente_id,negocio_id,negocios(nombre,sellos_objetivo,recompensa)').eq('cliente_id',client.id).order('creado_en',{ascending:true});if(cardError)throw cardError;cards=found||[];await fetchDesigns(cards);if(!cards.length){showOnly('unlinked');return;}if(qrCardId&&cards.some(c=>c.id===qrCardId))activeId=qrCardId;else if(!cards.some(c=>c.id===activeId))activeId=cards[0].id;fillSelector();showOnly('client-app');
  }finally{loading=false;}}
 async function refreshCards(){if(refreshing||loading||document.hidden||$('client-app').classList.contains('hidden')||!clientRecord)return;refreshing=true;try{const {data,error}=await supabase.from('tarjetas').select('id,sellos,recompensas_disponibles,cliente_id,negocio_id,negocios(nombre,sellos_objetivo,recompensa)').eq('cliente_id',clientRecord.id).order('creado_en',{ascending:true});if(error)throw error;const next=data||[];if(JSON.stringify(next)!==JSON.stringify(cards)){cards=next;await fetchDesigns(cards);if(!cards.some(c=>c.id===activeId))activeId=cards[0]?.id||null;if(activeId)fillSelector();else showOnly('unlinked');}}catch(e){console.warn('SelloGo: error actualizando tarjetas',e);}finally{refreshing=false;}}
 async function safeLoad(){try{await loadClient()}catch(e){showOnly('error-panel');$('error-text').textContent='No pudimos consultar tus tarjetas. '+(e?.message||'Comprueba la conexión e inténtalo de nuevo.');}}
 $('business-select').addEventListener('change',e=>{activeId=e.target.value;render();});
-$('google-login').addEventListener('click',async()=>{$('google-login').disabled=true;$('login-status').textContent='Abriendo Google…';try{const redirectTo=window.location.origin+window.location.pathname;const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(e){$('login-status').textContent='No se pudo iniciar sesión: '+(e?.message||'error desconocido');$('google-login').disabled=false;}});
-async function logout(){await supabase.auth.signOut();clientRecord=null;cards=[];designs.clear();activeId=null;showOnly('login');$('google-login').disabled=false;$('login-status').textContent='Cerraste sesión.';}
+$('google-login').addEventListener('click',async()=>{$('google-login').disabled=true;$('login-status').textContent='Abriendo Google…';try{const redirectTo=window.location.origin+window.location.pathname+(qrSlug?'?negocio='+encodeURIComponent(qrSlug):'');const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(e){$('login-status').textContent='No se pudo iniciar sesión: '+(e?.message||'error desconocido');$('google-login').disabled=false;}});
+async function logout(){await supabase.auth.signOut();clientRecord=null;cards=[];designs.clear();activeId=null;qrCardId=null;sessionStorage.removeItem('sellogo-qr-negocio');showOnly('login');$('google-login').disabled=false;$('login-status').textContent='Cerraste sesión.';}
 for(const id of ['logout','unlinked-logout','error-logout'])$(id).addEventListener('click',logout);for(const id of ['try-again','retry'])$(id).addEventListener('click',safeLoad);document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 supabase.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN')setTimeout(safeLoad,0);if(event==='SIGNED_OUT')showOnly('login');});
 setInterval(refreshCards,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCards();});window.addEventListener('focus',refreshCards);
+if(qrSlug){$('login-status').textContent='Estás entrando desde el QR de un negocio. Inicia sesión para obtener tu tarjeta.';}
 await safeLoad();
 </script></body></html>
