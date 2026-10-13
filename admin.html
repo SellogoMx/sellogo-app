@@ -38,7 +38,14 @@
   </div>
   <label class="report-check"><input id="report-send-email" type="checkbox"> Enviar reporte por correo electrónico</label>
   <label class="report-check"><input id="report-send-whatsapp" type="checkbox" disabled> Enviar reporte por WhatsApp</label>
-  <p id="report-consent" class="report-lock">🔒 WhatsApp requiere registrar previamente el consentimiento del destinatario. Próximamente habilitaremos ese registro.</p>
+  <p id="report-consent" class="report-lock">🔒 WhatsApp requiere autorización previa del destinatario.</p>
+  <div class="report-consent-box" style="margin-top:15px;padding:16px;border:1px solid #ffffff30;border-radius:14px;background:#15151b">
+   <strong>Autorización para reportes por WhatsApp</strong>
+   <p class="hint" style="margin:8px 0">Confirma que el titular de este número aceptó expresamente recibir reportes mensuales de SelloGo por WhatsApp. Guarda el comprobante de su aceptación fuera de este panel.</p>
+   <label class="report-check"><input id="report-consent-confirm" type="checkbox"> Confirmo que obtuve autorización expresa para este número.</label>
+   <div class="actions" style="margin-top:12px"><button class="secondary" id="report-consent-grant" type="button" disabled>Registrar autorización</button><button class="secondary" id="report-consent-revoke" type="button" disabled>Retirar autorización</button></div>
+   <p id="report-consent-message" class="message" role="status" aria-live="polite"></p>
+  </div>
   <div class="actions"><button class="primary" id="report-save" type="submit">Guardar contactos</button><p id="report-message" class="message" role="status" aria-live="polite"></p></div>
  </form>
  <p class="hint">Guardar esta configuración no envía mensajes. El envío automático por correo y WhatsApp se conectará en una etapa posterior.</p>
@@ -240,7 +247,11 @@ function resetReportFields(){
  $('report-send-email').checked=false;
  $('report-send-whatsapp').checked=false;
  $('report-send-whatsapp').disabled=true;
- $('report-consent').textContent='🔒 WhatsApp requiere registrar previamente el consentimiento del destinatario. Próximamente habilitaremos ese registro.';
+ $('report-consent').textContent='🔒 WhatsApp requiere autorización previa del destinatario.';
+ $('report-consent-confirm').checked=false;
+ $('report-consent-grant').disabled=true;
+ $('report-consent-revoke').disabled=true;
+ $('report-consent-message').textContent='';
 }
 async function loadReportContact(){
  const id=$('report-business').value,token=++reportLoadToken;
@@ -258,7 +269,9 @@ async function loadReportContact(){
   reportConsentDate=row.consentimiento_whatsapp_en||null;
   $('report-send-whatsapp').disabled=!reportConsentDate;
   $('report-send-whatsapp').checked=Boolean(row.enviar_whatsapp&&reportConsentDate);
-  $('report-consent').textContent=reportConsentDate?'✓ Autorización de WhatsApp registrada. Si cambias el número, deberás obtener una nueva autorización.':'🔒 WhatsApp requiere consentimiento previo. El registro de autorización se habilitará en el siguiente paso.';
+  $('report-consent').textContent=reportConsentDate?'✓ Autorización registrada para este número.':'🔒 Aún no hay autorización de WhatsApp registrada.';
+  $('report-consent-revoke').disabled=!reportConsentDate;
+  $('report-consent-grant').disabled=!$('report-consent-confirm').checked||!$('report-whatsapp').value.trim();
  }
  $('report-message').textContent=row?'✓ Contacto cargado.':'Este negocio aún no tiene contactos guardados.';
 }
@@ -267,8 +280,38 @@ $('report-whatsapp').addEventListener('input',()=>{
  // Un número distinto no puede heredar el consentimiento del número anterior.
  $('report-send-whatsapp').checked=false;
  $('report-send-whatsapp').disabled=true;
- $('report-consent').textContent='🔒 Si cambias el número, deberás registrar su autorización antes de activar WhatsApp.';
+ $('report-consent').textContent='🔒 Número modificado: registra su autorización antes de activar WhatsApp.';
+ $('report-consent-confirm').checked=false;
+ $('report-consent-grant').disabled=true;
+ $('report-consent-revoke').disabled=true;
 });
+$('report-consent-confirm').addEventListener('change',()=>{
+ $('report-consent-grant').disabled=!$('report-consent-confirm').checked||!$('report-business').value||!$('report-whatsapp').value.trim();
+});
+async function changeWhatsappConsent(authorized){
+ const id=$('report-business').value,number=$('report-whatsapp').value.trim();
+ const msg=$('report-consent-message');msg.classList.remove('success');
+ if(!id){msg.textContent='Selecciona un negocio.';return;}
+ if(!/^\+[1-9][0-9]{7,14}$/.test(number)){msg.textContent='Número inválido. Ejemplo: +529991234567.';return;}
+ if(authorized&&!$('report-consent-confirm').checked){msg.textContent='Confirma que obtuviste la autorización expresa.';return;}
+ if(!authorized&&!window.confirm('¿Retirar la autorización para '+number+'? Se desactivarán los reportes por WhatsApp.'))return;
+ const grant=$('report-consent-grant'),revoke=$('report-consent-revoke');grant.disabled=true;revoke.disabled=true;
+ msg.textContent=authorized?'Registrando autorización…':'Retirando autorización…';
+ try{
+  const {error}=await supabase.rpc('sellogo_autorizar_whatsapp_reporte',{
+   p_negocio_id:id,p_whatsapp:number,p_autorizado:authorized
+  });
+  if(error)throw error;
+  await loadReportContact();
+  if($('report-business').value===id){
+   msg.textContent=authorized?'✓ Autorización registrada. Ahora puedes activar WhatsApp y guardar contactos.':'✓ Autorización retirada. WhatsApp quedó desactivado.';
+   msg.classList.add('success');
+  }
+ }catch(e){msg.textContent='No se pudo actualizar la autorización: '+(e?.message||'Error desconocido');
+  grant.disabled=!$('report-consent-confirm').checked;revoke.disabled=!reportConsentDate;}
+}
+$('report-consent-grant').addEventListener('click',()=>changeWhatsappConsent(true));
+$('report-consent-revoke').addEventListener('click',()=>changeWhatsappConsent(false));
 $('report-form').addEventListener('submit',async e=>{
  e.preventDefault();
  const id=$('report-business').value,button=$('report-save');
