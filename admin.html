@@ -292,7 +292,7 @@ $('analytics-refresh').addEventListener('click',async()=>{
  if(!id){message.textContent='Selecciona un negocio.';return;}
  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)){message.textContent='Selecciona un mes válido.';return;}
  const token=++analyticsLoadToken,button=$('analytics-refresh');
- button.disabled=true;message.classList.remove('success');message.textContent='Consultando datos reales…';
+ button.disabled=true;analyticsPdfSnapshot=null;$('analytics-pdf').disabled=true;message.classList.remove('success');message.textContent='Consultando datos reales…';
  $('analytics-results').classList.add('hidden');
  try{
   const {data,error}=await supabase.rpc('sellogo_analytics_mensual',{p_negocio_id:id,p_mes:month+'-01'});
@@ -312,6 +312,9 @@ $('analytics-refresh').addEventListener('click',async()=>{
   $('analytics-stamps-bar').style.width=(stamps/max*100)+'%';
   $('analytics-redemptions-bar').style.width=(redemptions/max*100)+'%';
   $('analytics-results').classList.remove('hidden');
+  const negocio=studioBusinesses.find(b=>b.id===id);
+  analyticsPdfSnapshot={id,month,name:negocio?.nombre||'Negocio',stamps,redemptions,active};
+  $('analytics-pdf').disabled=false;
   message.textContent='✓ Estadísticas consultadas en Supabase.';message.classList.add('success');
  }catch(e){
   if(token===analyticsLoadToken)message.textContent='No se pudieron consultar las estadísticas: '+(e?.message||'Error desconocido');
