@@ -48,6 +48,24 @@ async function fetchDesigns(list){
 function showOnly(section){for(const id of ['login','client-app','unlinked','error-panel'])$(id).classList.toggle('hidden',id!==section);$('navbar').classList.toggle('hidden',section!=='client-app');}
 function showPage(page){for(const id of ['home','wallet','rewards'])$(id).classList.toggle('hidden',id!==page);document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));}
 function activeCard(){return cards.find(c=>c.id===activeId)||null;}
+// Los datos del comercio se obtienen mediante una función que valida auth.uid().
+// Se conserva la forma de objeto que utiliza el diseño actual de las tarjetas.
+async function fetchMyCards(){
+ const {data,error}=await supabase.rpc('sellogo_mis_tarjetas_cliente');
+ if(error)throw error;
+ return (data||[]).map(row=>({
+  id:row.id,
+  sellos:row.sellos,
+  recompensas_disponibles:row.recompensas_disponibles,
+  cliente_id:row.cliente_id,
+  negocio_id:row.negocio_id,
+  negocios:{
+   nombre:row.nombre_negocio,
+   sellos_objetivo:row.sellos_objetivo,
+   recompensa:row.recompensa
+  }
+ }));
+}
 function business(c){const n=c.negocios;return Array.isArray(n)?n[0]:n;}
 function render(){const c=activeCard();if(!c)return;const n=business(c)||{};const name=n.nombre||'Negocio';const target=Math.max(1,Math.min(100,Number(n.sellos_objetivo)||5));const stamps=Math.max(0,Math.min(target,Number(c.sellos)||0));const rewards=Math.max(0,Number(c.recompensas_disponibles)||0);const prize=n.recompensa||'Recompensa del negocio';const design=designs.get(c.negocio_id)||{};const main=colorOK(design.color_primario)?design.color_primario:'#d7ad75';const secondary=colorOK(design.color_secundario)?design.color_secundario:'#3e2922';const ink=colorOK(design.color_texto)?design.color_texto:'#f9f0e3';const icon=typeof design.icono_sello==='string'&&design.icono_sello.trim()?Array.from(design.icono_sello).slice(0,5).join(''):'✦';
  const markup=document.createElement('div');markup.className='card';markup.style.background=`linear-gradient(135deg, ${main}, ${secondary} 65%)`;markup.style.borderColor=main;markup.style.color=ink;markup.style.setProperty('--card-accent',main);markup.style.setProperty('--card-ink',ink);if(typeof design.fondo_url==='string'&&/^https:\/\//i.test(design.fondo_url)){markup.style.backgroundImage=`linear-gradient(135deg, #0009, #000a), url("${design.fondo_url.replace(/[\"\\()]/g,'')}")`;markup.style.backgroundSize='cover';markup.style.backgroundPosition='center';}const top=document.createElement('div');top.className='cardtop';const title=document.createElement('div');title.className='cafelogo';title.textContent=name;title.style.fontFamily=({Inter:'Inter,system-ui,sans-serif',Georgia:'Georgia,serif',Montserrat:'Montserrat,system-ui,sans-serif',Poppins:'Poppins,system-ui,sans-serif'})[design.tipografia]||'inherit';if(typeof design.logo_url==='string'&&/^https:\/\//i.test(design.logo_url)){const logo=document.createElement('img');logo.src=design.logo_url;logo.alt='Logotipo de '+name;logo.loading='lazy';logo.style.cssText='display:block;max-height:58px;max-width:180px;object-fit:contain;margin-bottom:8px';logo.onerror=()=>logo.remove();title.prepend(logo)}const tag=document.createElement('div');tag.className='tag';tag.textContent='MIEMBRO';top.append(title,tag);markup.append(top);
@@ -65,9 +83,9 @@ async function loadClient(){if(loading)return;loading=true;try{const {data:{user
   qrCardId=await registerFromQR();
  // El registro de tarjetas se hará por QR; no dar de alta Café Luna automáticamente.
  const {data:client,error:clientError}=await supabase.from('clientes').select('id,nombre,telefono,usuario_id').eq('usuario_id',user.id).maybeSingle();if(clientError)throw clientError;if(!client){showOnly('unlinked');return;}clientRecord=client;
- const {data:found,error:cardError}=await supabase.from('tarjetas').select('id,sellos,recompensas_disponibles,cliente_id,negocio_id,negocios(nombre,sellos_objetivo,recompensa)').eq('cliente_id',client.id).order('creado_en',{ascending:true});if(cardError)throw cardError;cards=found||[];await fetchDesigns(cards);if(!cards.length){showOnly('unlinked');return;}if(qrCardId&&cards.some(c=>c.id===qrCardId))activeId=qrCardId;else if(!cards.some(c=>c.id===activeId))activeId=cards[0].id;fillSelector();showOnly('client-app');
+ cards=await fetchMyCards();await fetchDesigns(cards);if(!cards.length){showOnly('unlinked');return;}if(qrCardId&&cards.some(c=>c.id===qrCardId))activeId=qrCardId;else if(!cards.some(c=>c.id===activeId))activeId=cards[0].id;fillSelector();showOnly('client-app');
  }finally{loading=false;}}
-async function refreshCards(){if(refreshing||loading||document.hidden||$('client-app').classList.contains('hidden')||!clientRecord)return;refreshing=true;try{const {data,error}=await supabase.from('tarjetas').select('id,sellos,recompensas_disponibles,cliente_id,negocio_id,negocios(nombre,sellos_objetivo,recompensa)').eq('cliente_id',clientRecord.id).order('creado_en',{ascending:true});if(error)throw error;const next=data||[];if(JSON.stringify(next)!==JSON.stringify(cards)){cards=next;await fetchDesigns(cards);if(!cards.some(c=>c.id===activeId))activeId=cards[0]?.id||null;if(activeId)fillSelector();else showOnly('unlinked');}}catch(e){console.warn('SelloGo: error actualizando tarjetas',e);}finally{refreshing=false;}}
+async function refreshCards(){if(refreshing||loading||document.hidden||$('client-app').classList.contains('hidden')||!clientRecord)return;refreshing=true;try{const next=await fetchMyCards();if(JSON.stringify(next)!==JSON.stringify(cards)){cards=next;await fetchDesigns(cards);if(!cards.some(c=>c.id===activeId))activeId=cards[0]?.id||null;if(activeId)fillSelector();else showOnly('unlinked');}}catch(e){console.warn('SelloGo: error actualizando tarjetas',e);}finally{refreshing=false;}}
 async function safeLoad(){try{await loadClient()}catch(e){showOnly('error-panel');$('error-text').textContent='No pudimos consultar tus tarjetas. '+(e?.message||'Comprueba la conexión e inténtalo de nuevo.');}}
 $('business-select').addEventListener('change',e=>{activeId=e.target.value;render();});
 $('google-login').addEventListener('click',async()=>{$('google-login').disabled=true;$('login-status').textContent='Abriendo Google…';try{const redirectTo=window.location.origin+window.location.pathname+(qrSlug?'?negocio='+encodeURIComponent(qrSlug):'');const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(e){$('login-status').textContent='No se pudo iniciar sesión: '+(e?.message||'error desconocido');$('google-login').disabled=false;}});
