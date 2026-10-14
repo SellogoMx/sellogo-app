@@ -12,7 +12,18 @@
 <body><main class="shell">
 <header class="top"><div><div class="logo">SELLO<b>GO</b></div><div class="sub">CADA COMPRA CUENTA</div></div><div class="tag">BUSINESS · PROPIETARIOS</div></header>
 <section id="loading" class="auth"><p>Comprobando tu acceso…</p></section>
-<section id="login" class="auth hidden"><div class="sub">ACCESO A PROPIETARIOS</div><h1>Tu negocio, en un solo lugar<span style="color:#ff872f">.</span></h1><p>Inicia sesión con la cuenta que SelloGo asignó a tu negocio.</p><form id="login-form"><label class="field">Correo electrónico<input id="email" type="email" autocomplete="username" required></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password" required></label><button id="login-button" class="primary full" type="submit">Entrar a SelloGo Business</button><p id="login-message" class="message" role="status"></p></form><div class="switch">¿Eres nuevo en SelloGo? <button id="open-register" type="button">Crear cuenta de propietario</button></div></section>
+<section id="login" class="auth hidden"><div class="sub">ACCESO A PROPIETARIOS</div><h1>Tu negocio, en un solo lugar<span style="color:#ff872f">.</span></h1><p>Inicia sesión con la cuenta que SelloGo asignó a tu negocio.</p><form id="login-form"><label class="field">Correo electrónico<input id="email" type="email" autocomplete="username" required></label><label class="field">Contraseña<input id="password" type="password" autocomplete="current-password" required></label><button id="login-button" class="primary full" type="submit">Entrar a SelloGo Business</button><p id="login-message" class="message" role="status"></p></form><div class="switch"><button id="open-recovery" type="button">¿Olvidaste tu contraseña?</button></div><div class="switch">¿Eres nuevo en SelloGo? <button id="open-register" type="button">Crear cuenta de propietario</button></div></section>
+<section id="recovery" class="auth hidden">
+<div class="sub">SELLOGO BUSINESS · RECUPERACIÓN</div>
+<h1>Recupera tu acceso<span style="color:#ff872f">.</span></h1>
+<p>Escribe el correo de tu cuenta. Si está registrada con contraseña, recibirás instrucciones para recuperarla.</p>
+<form id="recovery-form">
+<label class="field">Correo electrónico<input id="recovery-email" type="email" autocomplete="email" maxlength="254" required></label>
+<button id="recovery-button" class="primary full" type="submit">Enviar enlace de recuperación</button>
+<p id="recovery-message" class="message" role="status" aria-live="polite"></p>
+</form>
+<div class="switch"><button id="recovery-back" type="button">Volver a iniciar sesión</button></div>
+</section>
 <section id="register" class="auth hidden"><div class="sub">SELLOGO BUSINESS · REGISTRO</div><h1>Crea tu cuenta<span style="color:#ff872f">.</span></h1><p>Regístrate y verifica tu correo. Un administrador deberá asignarte un negocio antes de que puedas consultar sus estadísticas.</p><form id="register-form"><label class="field">Correo electrónico<input id="register-email" type="email" autocomplete="email" required maxlength="254"></label><label class="field">Contraseña (mínimo 8 caracteres)<input id="register-password" type="password" autocomplete="new-password" required minlength="8"></label><label class="field">Confirmar contraseña<input id="register-confirm" type="password" autocomplete="new-password" required minlength="8"></label><button id="register-button" class="primary full" type="submit">Crear mi cuenta</button><p id="register-message" class="message" role="status" aria-live="polite"></p><p class="hint">No compartas tu contraseña. Tu cuenta no tendrá acceso a negocios hasta recibir autorización.</p></form><div class="switch">¿Ya tienes cuenta? <button id="back-login" type="button">Iniciar sesión</button></div></section>
 <section id="dashboard" class="hidden"><div class="welcome"><div class="sub">SELLOGO BUSINESS</div><h1>Panel de mi negocio<span style="color:#ff872f">.</span></h1><p>Sesión: <strong id="user-email"></strong></p><button id="logout" class="secondary logout" type="button">Cerrar sesión</button></div>
 <div id="dashboard-request-slot"></div><section class="panel"><div class="sub">ESTADÍSTICAS EXCLUSIVAS</div><h2>📊 Dashboard mensual</h2><p>Consulta los resultados de los negocios que tienes asignados.</p><div class="filters"><label class="field">Mi negocio<select id="business"><option value="">Selecciona un negocio</option></select></label><label class="field">Mes del reporte<input id="month" type="month"></label></div><div class="actions"><button id="refresh" class="primary" type="button">Consultar estadísticas</button><button id="download" class="secondary" type="button" disabled>↓ Descargar reporte PDF</button></div><p id="analytics-message" class="message" role="status" aria-live="polite"></p>
@@ -26,7 +37,7 @@ const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storage
 const $=id=>document.getElementById(id);
 let businesses=[],lastReport=null,queryToken=0,verifying=false;
 const formatter=new Intl.NumberFormat('es-MX');
-function show(id){for(const section of ['loading','login','register','dashboard','blocked'])$(section).classList.toggle('hidden',section!==id)}
+function show(id){for(const section of ['loading','login','recovery','register','dashboard','blocked'])$(section).classList.toggle('hidden',section!==id)}
 function placeRequestForm(destination){
  const form=$('request-panel');const slot=$(destination==='blocked'?'blocked-request-slot':'dashboard-request-slot');
  slot.append(form);form.classList.remove('hidden');
@@ -57,6 +68,22 @@ function monthLabel(value){const [year,month]=value.split('-').map(Number);retur
 $('month').value=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Merida',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7);
 $('business').addEventListener('change',clearReport);$('month').addEventListener('change',clearReport);
 async function verify(){if(verifying)return;verifying=true;show('loading');clearReport();businesses=[];try{const {data:{user},error}=await supabase.auth.getUser();if(error||!user){show('login');return}const {data,error:businessError}=await supabase.rpc('sellogo_mis_negocios_propietario');if(businessError)throw businessError;businesses=Array.isArray(data)?data:[];if(!businesses.length){placeRequestForm('blocked');show('blocked');return}$('user-email').textContent=user.email||'Propietario';const select=$('business');select.replaceChildren(new Option('Selecciona un negocio',''));for(const business of businesses)select.add(new Option(business.nombre,business.id));if(businesses.length===1)select.value=businesses[0].id;placeRequestForm('dashboard');show('dashboard')}catch(e){show('login');$('login-message').textContent='No se pudo comprobar el acceso: '+(e?.message||'Error de conexión')}finally{verifying=false}}
+$('open-recovery').addEventListener('click',()=>{$('recovery-message').textContent='';$('recovery-email').value=$('email').value.trim();show('recovery')});
+$('recovery-back').addEventListener('click',()=>{show('login');$('login-message').textContent=''});
+$('recovery-form').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const button=$('recovery-button'),message=$('recovery-message');
+ const email=$('recovery-email').value.trim();
+ button.disabled=true;message.classList.remove('success');message.textContent='Solicitando enlace…';
+ try{
+  const redirectTo=new URL('recuperar.html',window.location.href).href;
+  const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});
+  if(error)throw error;
+  message.textContent='Si tu cuenta existe y puede recuperar contraseña, recibirás un correo. Revisa también spam.';
+  message.classList.add('success');
+ }catch(err){message.textContent='No se pudo solicitar el enlace: '+(err?.message||'Error desconocido')}
+ finally{button.disabled=false}
+});
 $('open-register').addEventListener('click',()=>{$('register-message').textContent='';$('register-message').classList.remove('success');show('register')});
 $('back-login').addEventListener('click',()=>{show('login');$('login-message').textContent=''});
 $('register-form').addEventListener('submit',async e=>{
