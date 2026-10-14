@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101014">
+<title>SelloGo · Nueva contraseña</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#f7f7fa;background:#101014}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 85% 0,#3a2118,transparent 38%),#101014}
+.shell{max-width:1000px;margin:auto;padding:26px}.top{border-bottom:1px solid #ffffff20;padding-bottom:20px}
+.logo{font-size:25px;font-weight:900;letter-spacing:1px}.logo b{color:#ff872f}.sub{font-size:11px;letter-spacing:1.5px;color:#aaa9b3}
+.auth{max-width:460px;margin:65px auto;padding:30px;background:#1c1c22;border:1px solid #ffffff20;border-radius:22px}
+h1{font-size:31px;margin:12px 0}p{color:#b8b8c1;line-height:1.55}
+.field{display:block;margin-top:18px;font-size:13px;color:#e4e4e8}
+input{font:inherit;width:100%;margin-top:9px;border:1px solid #454550;border-radius:12px;padding:14px 15px;color:white;background:#111116}
+input:focus{outline:1px solid #ff872f}
+.primary{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:14px 18px;background:#ff872f;color:#1b100a;font-weight:800;width:100%;margin-top:23px}
+.primary:disabled{opacity:.5;cursor:not-allowed}
+.message{color:#ffbe91;font-size:13px;min-height:18px;overflow-wrap:anywhere}.success{color:#a1e4b8}
+a{color:#ffb07c}.hidden{display:none!important}
+@media(max-width:700px){.shell{padding:17px}.auth{padding:22px;margin:45px auto}}
+</style>
+</head>
+<body><main class="shell">
+<header class="top"><div class="logo">SELLO<b>GO</b></div><div class="sub">CADA COMPRA CUENTA</div></header>
+<section class="auth">
+<div class="sub">SEGURIDAD · SELLOGO</div><h1>Establece tu nueva contraseña<span style="color:#ff872f">.</span></h1>
+<p id="status" role="status">Verificando tu enlace de recuperación…</p>
+<form id="form" class="hidden">
+<label class="field">Nueva contraseña (mínimo 8 caracteres)<input id="password" type="password" autocomplete="new-password" minlength="8" required></label>
+<label class="field">Confirmar nueva contraseña<input id="confirm" type="password" autocomplete="new-password" minlength="8" required></label>
+<button id="submit" class="primary" type="submit">Guardar nueva contraseña</button>
+<p id="message" class="message" role="status" aria-live="polite"></p>
+</form>
+<p><a href="./propietario.html">Volver a SelloGo Business</a></p>
+</section></main>
+<script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js';
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+ auth:{storageKey:'sellogo-recuperacion-auth',detectSessionInUrl:true,autoRefreshToken:false,persistSession:false}
+});
+const $=id=>document.getElementById(id);
+let authorized=false;
+const url=new URL(location.href);
+const isRecoveryLink=url.searchParams.get('type')==='recovery'||new URLSearchParams(location.hash.slice(1)).get('type')==='recovery';
+supabase.auth.onAuthStateChange((event,session)=>{
+ if(event==='PASSWORD_RECOVERY'&&session){
+  authorized=true;$('status').textContent='Enlace verificado. Elige una contraseña nueva.';$('form').classList.remove('hidden');
+ }
+});
+try{
+ // Supabase JS procesa el token de recuperación de la URL.
+ const {error}=await supabase.auth.initialize();
+ if(error)throw error;
+ if(!authorized){
+  $('status').textContent=isRecoveryLink
+   ?'No pudimos verificar el enlace. Solicita uno nuevo desde SelloGo Business.'
+   :'Abre esta página desde el enlace que recibiste por correo.';
+ }
+}catch(err){$('status').textContent='Enlace no válido o vencido. Solicita uno nuevo desde SelloGo Business.'}
+$('form').addEventListener('submit',async e=>{
+ e.preventDefault();if(!authorized)return;
+ const pass=$('password').value,confirm=$('confirm').value,message=$('message');
+ message.classList.remove('success');
+ if(pass.length<8){message.textContent='Usa al menos 8 caracteres.';return}
+ if(pass!==confirm){message.textContent='Las contraseñas no coinciden.';return}
+ const button=$('submit');button.disabled=true;message.textContent='Actualizando contraseña…';
+ try{
+  const {error}=await supabase.auth.updateUser({password:pass});
+  if(error)throw error;
+  $('form').classList.add('hidden');
+  $('status').textContent='✓ Contraseña actualizada. Ya puedes iniciar sesión en SelloGo Business.';
+  $('status').classList.add('success');
+  await supabase.auth.signOut();
+  authorized=false;
+ }catch(err){message.textContent='No se pudo actualizar: '+(err?.message||'Error desconocido')}
+ finally{button.disabled=false}
+});
+</script></body></html>
