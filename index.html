@@ -24,6 +24,11 @@ function activeBusiness(){return memberships.find(m=>m.negocio_id===negocioId)}
 function goal(){return Number(activeBusiness()?.negocios?.sellos_objetivo)||5}
 function refreshButtons(){const active=!!negocioId&&!busy;$('#stamp').disabled=!active||!selected;$('#redeem').disabled=!active||!selected||Number(selected.recompensas_disponibles)<1;}
 function resetSelection(){selected=null;$('#selected').textContent='Busca un cliente y selecciona su tarjeta.';$('#results').replaceChildren();refreshButtons()}
+async function stopScanner(){
+ const current=scanner;scanner=null;
+ $('#stop-scan').classList.add('hidden');$('#scanner').classList.add('hidden');$('#start-scan').disabled=false;
+ if(current){try{if(current.isScanning)await current.stop()}catch{}try{current.clear()}catch{}}
+}
 function switchBusiness(id){void stopScanner();negocioId=id;resetSelection();const b=activeBusiness();$('#business-info').textContent=b?`${b.negocios?.nombre||'Negocio'} · ${goal()} sellos = ${b.negocios?.recompensa||'Recompensa'}`:'';msg('')}
 const valid=SUPABASE_URL.startsWith('https://')&&!!SUPABASE_PUBLISHABLE_KEY;
 if(!valid){msg('Configura la URL y Publishable Key en config.js');btn.disabled=true;$('#google-login').disabled=true}
@@ -43,11 +48,7 @@ $('#business-select').addEventListener('change',e=>switchBusiness(e.target.value
 $('#logout').addEventListener('click',async()=>{await stopScanner();await supabase.auth.signOut();memberships=[];negocioId=null;resetSelection();msg('Sesión cerrada');await showSession()});
 async function loadCard(cardId){const {data,error}=await supabase.from('tarjetas').select('id,cliente_id,negocio_id,sellos,recompensas_disponibles').eq('id',cardId).eq('negocio_id',negocioId).single();if(error)throw error;selected=data;$('#selected').textContent=`Sellos: ${data.sellos??0} de ${goal()} · Recompensas disponibles: ${data.recompensas_disponibles??0}`;refreshButtons()}
 const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-async function stopScanner(){
- const current=scanner;scanner=null;
- $('#stop-scan').classList.add('hidden');$('#scanner').classList.add('hidden');$('#start-scan').disabled=false;
- if(current){try{if(current.isScanning)await current.stop()}catch{}try{current.clear()}catch{}}
-}
+
 $('#start-scan').addEventListener('click',async()=>{
  if(scanStarting||scanner||!negocioId)return;
  if(!window.Html5Qrcode){$('#scan-status').textContent='No se pudo cargar el lector QR. Usa la búsqueda manual.';return}
