@@ -17,6 +17,7 @@
 <div class="card"><div class="card-head"><div class="name" id="business-name"></div><div class="tag">MIEMBRO</div></div><p class="muted">Tarjeta de fidelidad</p><div class="stamps" id="stamps"></div><div class="foot"><span>Tu progreso</span><strong id="progress"></strong></div></div>
 <div class="panel"><strong id="reward-name"></strong><p id="reward-details"></p></div>
 <div class="panel"><strong>¿Cómo sumo sellos?</strong><p>Presenta tu tarjeta al personal del negocio. Solo los empleados autorizados pueden agregar sellos y canjear recompensas.</p></div>
+<div class="panel"><strong>Código de tu tarjeta</strong><p id="public-card-id" style="overflow-wrap:anywhere;font-family:monospace;user-select:all">Cargando…</p><button class="button secondary" id="copy-card-id" type="button">Copiar código para el empleado</button><p class="privacy">Este código identifica tu tarjeta. No compartas el token privado ni el almacenamiento del navegador.</p></div>
 <button class="button secondary" id="refresh">Actualizar mis sellos</button><p id="status" class="status" role="status"></p>
 <p class="privacy">Tu tarjeta se conserva en este navegador. Si borras los datos del navegador, cambias de dispositivo o usas modo incógnito, podrías perder el acceso. No compartas el enlace privado de tu tarjeta.</p>
 </section></main>
@@ -40,6 +41,7 @@ async function call(accion, params={}){
 }
 function render(t){
  $('business-name').textContent=t.negocio||'Mi negocio';
+ $('public-card-id').textContent=t.id||'No disponible';
  const target=Math.max(1,Math.min(100,Number(t.sellos_objetivo)||5));
  const stamps=Math.max(0,Math.min(target,Number(t.sellos)||0));
  $('stamps').replaceChildren();
@@ -76,6 +78,7 @@ async function refresh(){
  catch(e){$('status').textContent=e.message||'No se pudo actualizar la tarjeta.'}
  finally{busy=false;$('refresh').disabled=false}
 }
+$('copy-card-id').addEventListener('click',async()=>{const id=$('public-card-id').textContent;if(!/^[0-9a-f-]{36}$/i.test(id))return;try{await navigator.clipboard.writeText(id);$('status').textContent='Código copiado. Muéstralo al empleado.'}catch{$('status').textContent='Selecciona y copia el código manualmente.'}});
 $('retry').addEventListener('click',load);
 $('refresh').addEventListener('click',refresh);
 load();
