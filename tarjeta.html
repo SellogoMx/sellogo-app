@@ -8,6 +8,19 @@
 <style>
 :root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#f8f0e8;background:#17120f;color-scheme:dark}*{box-sizing:border-box}body{margin:0}.app{max-width:480px;min-height:100dvh;margin:auto;padding:26px 22px 70px;background:radial-gradient(circle at 90% 0%,#463026,transparent 45%),#17120f}.brand{font-size:18px;font-weight:850;letter-spacing:2px}.brand b{color:#f09b43}.slogan{color:#bba28f;font-size:10px;letter-spacing:1.7px;margin-top:3px}.eyebrow{font-size:12px;letter-spacing:2px;color:#d9a976;margin-top:46px}.heading{font-size:32px;line-height:1.12;letter-spacing:-1px;margin:10px 0 10px}.muted{color:#c8b6a7;line-height:1.6;font-size:14px}.card{border:1px solid #bd8a58;border-radius:26px;padding:24px;margin-top:24px;background:linear-gradient(135deg,#7c4b29,#35231c 72%);box-shadow:0 15px 35px #0007}.card-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.name{font-size:25px;font-weight:750;overflow-wrap:anywhere}.tag{border:1px solid #f7d6ad77;border-radius:20px;padding:7px 10px;font-size:10px;letter-spacing:1px}.stamps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:25px 0 17px}.stamp{aspect-ratio:1;border:1px solid #ffffff50;background:#ffffff12;border-radius:50%;display:grid;place-items:center;color:#f4dfc5;font-size:23px}.stamp.on{background:#f3c68e;color:#3a2517;border-color:#f3c68e}.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px}.panel{background:#2b211d;border:1px solid #594333;border-radius:20px;padding:19px;margin-top:18px}.panel strong{display:block;font-size:18px;margin-bottom:6px}.panel p{margin:0;color:#d1bdac;line-height:1.55;font-size:13px}.button{border:0;border-radius:14px;background:#edaa65;color:#24160f;padding:15px 18px;width:100%;font:inherit;font-weight:800;cursor:pointer;margin-top:17px}.button:disabled{opacity:.55;cursor:wait}.secondary{background:transparent;color:#e7bd91;border:1px solid #806046}.status{font-size:13px;color:#e9bf91;line-height:1.6;overflow-wrap:anywhere}.hidden{display:none!important}.privacy{font-size:12px;color:#ad9a8b;line-height:1.6;margin-top:26px}@media(min-width:500px){body{background:#0d0a08}.app{box-shadow:0 0 90px #0008}}
 #personal-qr{display:flex;justify-content:center;margin:16px auto;background:#fff;padding:14px;border-radius:16px;width:max-content;max-width:100%}#personal-qr img,#personal-qr canvas{display:block;max-width:100%;height:auto}.qr-note{text-align:center;font-size:12px;color:#d1bdac}
+
+/* Recompensas visibles para el cliente */
+.reward-panel{border:1px solid #8e6848;border-radius:22px;padding:21px;margin-top:18px;background:linear-gradient(145deg,#32241d,#241b17)}
+.reward-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.reward-label{font-size:12px;letter-spacing:1.2px;color:#e6b98b;font-weight:800;text-transform:uppercase}
+.reward-count{display:flex;align-items:baseline;gap:10px;margin:12px 0 8px}
+.reward-number{font-size:46px;line-height:1;font-weight:850;color:#f2b874}
+.reward-unit{font-size:15px;color:#dfcbb9}
+.reward-title{font-size:18px;font-weight:750;margin:10px 0 6px}
+.reward-explain{color:#d1bdac;font-size:13px;line-height:1.6;margin:0}
+.reward-panel.has-prize{border-color:#e9ad63;background:linear-gradient(145deg,#51321d,#2b211b);box-shadow:0 0 0 1px #dba45a33}
+.reward-celebrate{font-size:20px;font-weight:850;color:#ffd69e;margin:12px 0 6px}
+.reward-celebrate[hidden]{display:none}
 </style>
 </head>
 <body><main class="app">
@@ -16,7 +29,13 @@
 <section id="error" class="hidden"><p class="eyebrow">SELLOGO</p><h1 class="heading">No pudimos abrir tu tarjeta</h1><p id="error-text" class="status" role="alert"></p><button class="button" id="retry">Intentar de nuevo</button></section>
 <section id="card-screen" class="hidden"><p class="eyebrow">TU TARJETA DIGITAL</p><h1 class="heading">Cada visita cuenta.</h1><p class="muted">Acumula sellos y disfruta tus recompensas.</p>
 <div class="card"><div class="card-head"><div class="name" id="business-name"></div><div class="tag">MIEMBRO</div></div><p class="muted">Tarjeta de fidelidad</p><div class="stamps" id="stamps"></div><div class="foot"><span>Tu progreso</span><strong id="progress"></strong></div></div>
-<div class="panel"><strong id="reward-name"></strong><p id="reward-details"></p></div>
+<section class="reward-panel" id="reward-panel" aria-label="Mis recompensas">
+ <div class="reward-top"><span class="reward-label">🎁 Mis recompensas</span><span aria-hidden="true">☕</span></div>
+ <p class="reward-celebrate" id="reward-celebrate" hidden>🎉 ¡Felicidades! Tienes un premio disponible.</p>
+ <div class="reward-count"><span class="reward-number" id="reward-count">0</span><span class="reward-unit" id="reward-unit">recompensas disponibles</span></div>
+ <div class="reward-title" id="reward-name"></div>
+ <p class="reward-explain" id="reward-details"></p>
+</section>
 <div class="panel"><strong>¿Cómo sumo sellos?</strong><p>Presenta tu tarjeta al personal del negocio. Solo los empleados autorizados pueden agregar sellos y canjear recompensas.</p></div>
 <div class="panel"><strong>Mi QR personal</strong><p>Muéstralo al empleado para sumar sellos.</p><div id="personal-qr" aria-label="QR personal de tu tarjeta"></div><p id="qr-status" class="qr-note"></p></div>
 <div class="panel"><strong>Código de tu tarjeta</strong><p id="public-card-id" style="overflow-wrap:anywhere;font-family:monospace;user-select:all">Cargando…</p><button class="button secondary" id="copy-card-id" type="button">Copiar código para el empleado</button><p class="privacy">Este código identifica tu tarjeta. No compartas el token privado ni el almacenamiento del navegador.</p></div>
@@ -56,9 +75,17 @@ function render(t){
  $('stamps').replaceChildren();
  for(let i=0;i<target;i++){const dot=document.createElement('div');dot.className='stamp'+(i<stamps?' on':'');dot.textContent=i<stamps?'✓':'✦';$('stamps').append(dot)}
  $('progress').textContent=`${stamps} / ${target}`;
- $('reward-name').textContent=t.recompensa||'Tu recompensa';
- const available=Math.max(0,Number(t.recompensas_disponibles)||0);
- $('reward-details').textContent=`${available} recompensa(s) disponible(s). Completa ${target} sellos para conseguir una recompensa.`;
+ const prize=t.recompensa||'Tu recompensa';
+ const available=Math.max(0,Math.floor(Number(t.recompensas_disponibles)||0));
+ $('reward-name').textContent=prize;
+ $('reward-count').textContent=String(available);
+ $('reward-unit').textContent=available===1?'recompensa disponible':'recompensas disponibles';
+ $('reward-panel').classList.toggle('has-prize',available>0);
+ $('reward-celebrate').hidden=available===0;
+ $('reward-celebrate').textContent=available===1?'🎉 ¡Felicidades! Tienes un premio disponible.':'🎉 ¡Felicidades! Tienes premios disponibles.';
+ $('reward-details').textContent=available>0
+  ?`¡Ya puedes reclamar: ${prize}! Muéstrale tu QR al empleado. Tu premio permanecerá disponible hasta que un empleado autorizado lo canjee.`
+  :`Completa ${target} sellos para conseguir: ${prize}. Cuando ganes un premio, aparecerá aquí.`;
  show('card-screen');
 }
 async function load(){
