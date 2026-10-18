@@ -39,6 +39,22 @@
 .code{overflow-wrap:anywhere;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#d4d5da!important;user-select:all;font-size:12px!important}
 @media(min-width:550px){body{background:#050506}.app{box-shadow:0 0 80px #0008;border-left:1px solid #25262a;border-right:1px solid #25262a}}
 
+
+/* Tema por negocio: solo se activa cuando existe un diseño guardado en Studio */
+.negocio-logo{width:58px;height:58px;border-radius:50%;object-fit:contain;flex:none}
+.card-head .name{margin-right:auto;min-width:0}
+.app.themed{background:#0a0b0e}
+.app.themed .eyebrow,.app.themed .reward-label{color:var(--sg-p)}
+.app.themed .card{border-color:var(--sg-p);background-color:var(--sg-s);background-size:cover;background-position:right center;background-repeat:no-repeat;color:var(--sg-t);font-family:var(--sg-font)}
+.app.themed .card:after{display:none}
+.app.themed .card .name,.app.themed .card .muted,.app.themed .card .foot,.app.themed .card .foot strong{color:var(--sg-t);text-shadow:0 2px 8px #000}
+.app.themed .tag{border-color:var(--sg-p);color:var(--sg-t);background:#00000080}
+.app.themed .stamp{background:#000000a6;border-color:var(--sg-t);color:var(--sg-t)}
+.app.themed .stamp.on{background:var(--sg-p);border-color:var(--sg-p);color:var(--sg-on-p);box-shadow:0 3px 12px #0008}
+.app.themed .reward-panel,.app.themed .reward-panel.has-prize{border-color:var(--sg-p)}
+.app.themed .reward-number{color:var(--sg-p)}
+.app.themed .button:not(.secondary){background:var(--sg-p);color:var(--sg-on-p);box-shadow:none}
+.powered{text-align:center;color:#858995;font-size:12px;letter-spacing:.4px;margin:26px 0 0}.powered b{color:#ff8126}
 </style>
 </head>
 <body><main class="app">
@@ -46,7 +62,7 @@
 <section id="loading"><p class="eyebrow">TU TARJETA DIGITAL</p><h1 class="heading">Preparando tu tarjeta…</h1><p class="muted">Estamos conectando con tu negocio.</p></section>
 <section id="error" class="hidden"><p class="eyebrow">SELLOGO</p><h1 class="heading">No pudimos abrir tu tarjeta</h1><p id="error-text" class="status" role="alert"></p><button class="button" id="retry">Intentar de nuevo</button></section>
 <section id="card-screen" class="hidden"><p class="eyebrow">TU TARJETA DIGITAL</p><h1 class="heading">Cada visita cuenta.</h1><p class="muted">Acumula sellos y disfruta tus recompensas.</p>
-<div class="card"><div class="card-head"><div class="name" id="business-name"></div><div class="tag">MIEMBRO</div></div><p class="muted">Tarjeta de fidelidad</p><div class="stamps" id="stamps"></div><div class="foot"><span>Tu progreso</span><strong id="progress"></strong></div></div>
+<div class="card"><div class="card-head"><img id="negocio-logo" class="negocio-logo hidden" alt="Logo del negocio"><div class="name" id="business-name"></div><div class="tag">MIEMBRO</div></div><p class="muted">Tarjeta de fidelidad</p><div class="stamps" id="stamps"></div><div class="foot"><span>Tu progreso</span><strong id="progress"></strong></div></div>
 <section class="reward-panel" id="reward-panel" aria-label="Mis recompensas">
  <div class="reward-top"><span class="reward-label">🎁 Mis recompensas</span><span aria-hidden="true">🎁</span></div>
  <p class="reward-celebrate" id="reward-celebrate" hidden>🎉 ¡Felicidades! Tienes un premio disponible.</p>
@@ -59,6 +75,7 @@
 <div class="panel"><strong>Código de tu tarjeta</strong><p id="public-card-id" class="code">Cargando…</p><button class="button secondary" id="copy-card-id" type="button">Copiar código para el empleado</button><p class="privacy">Este código identifica tu tarjeta. No compartas el token privado ni el almacenamiento del navegador.</p></div>
 <button class="button secondary" id="refresh">Actualizar mis sellos</button><p id="status" class="status" role="status"></p>
 <p class="privacy">Tu tarjeta se conserva en este navegador. Si borras los datos del navegador, cambias de dispositivo o usas modo incógnito, podrías perder el acceso. No compartas el enlace privado de tu tarjeta.</p>
+<p class="powered">Powered by <b>SelloGo</b></p>
 </section></main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
@@ -69,6 +86,37 @@ const validSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug.length <= 100;
 const storageKey = `sellogo:tarjeta:v1:${slug}`;
 const endpoint = `${SUPABASE_URL.replace(/\/$/,'')}/functions/v1/sellogo-tarjetas`;
 let busy = false;
+let diseno = null;
+const FUENTES = {'Inter':'Inter,system-ui,sans-serif','Arial':'Arial,sans-serif','Georgia':'Georgia,serif','Verdana':'Verdana,sans-serif','Trebuchet MS':'"Trebuchet MS",sans-serif'};
+const colorOk = v => typeof v==='string' && /^#[0-9a-f]{6}$/i.test(v);
+const urlOk = v => typeof v==='string' && v.length<=2000 && /^https:\/\/[^\s"'()<>\\]+$/i.test(v);
+function textoLegible(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;return (0.299*r+0.587*g+0.114*b)>150?'#111111':'#ffffff'}
+// Solo lectura: pide a Supabase los datos visuales del negocio. Si algo falla, la tarjeta se ve como siempre.
+async function cargarDiseno(){
+ try{
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6000);
+  const r=await fetch(`${SUPABASE_URL.replace(/\/$/,'')}/rest/v1/rpc/sellogo_diseno_publico`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({p_slug:slug}),cache:'no-store',signal:ctrl.signal});
+  clearTimeout(timer);
+  if(!r.ok)return null;
+  const rows=await r.json();
+  return Array.isArray(rows)&&rows[0]?rows[0]:null;
+ }catch{return null}
+}
+function aplicarDiseno(d){
+ if(!d||!colorOk(d.color_primario)||!colorOk(d.color_secundario)||!colorOk(d.color_texto)){diseno=null;return}
+ const app=document.querySelector('.app'),card=document.querySelector('.card'),logo=$('negocio-logo');
+ app.style.setProperty('--sg-p',d.color_primario);
+ app.style.setProperty('--sg-s',d.color_secundario);
+ app.style.setProperty('--sg-t',d.color_texto);
+ app.style.setProperty('--sg-on-p',textoLegible(d.color_primario));
+ app.style.setProperty('--sg-font',FUENTES[d.tipografia]||FUENTES.Inter);
+ card.style.backgroundImage=urlOk(d.fondo_url)?`linear-gradient(#0000003d,#0000003d),url("${d.fondo_url}")`:'none';
+ if(urlOk(d.logo_url)){logo.onload=()=>logo.classList.remove('hidden');logo.onerror=()=>logo.classList.add('hidden');logo.src=d.logo_url}
+ else{logo.classList.add('hidden');logo.removeAttribute('src')}
+ const icono=typeof d.icono_sello==='string'?[...d.icono_sello.trim()].slice(0,4).join(''):'';
+ diseno={icono};
+ app.classList.add('themed');
+}
 function show(section){for(const id of ['loading','error','card-screen'])$(id).classList.toggle('hidden',id!==section)}
 function fail(message){$('error-text').textContent=message;show('error')}
 function savedToken(){try{return localStorage.getItem(storageKey)}catch{return null}}
@@ -91,7 +139,7 @@ function render(t){
  const target=Math.max(1,Math.min(100,Number(t.sellos_objetivo)||5));
  const stamps=Math.max(0,Math.min(target,Number(t.sellos)||0));
  $('stamps').replaceChildren();
- for(let i=0;i<target;i++){const dot=document.createElement('div');dot.className='stamp'+(i<stamps?' on':'');dot.textContent=i<stamps?'✓':'✦';$('stamps').append(dot)}
+ for(let i=0;i<target;i++){const dot=document.createElement('div');dot.className='stamp'+(i<stamps?' on':'');dot.textContent=i<stamps?(diseno?.icono||'✓'):'✦';$('stamps').append(dot)}
  $('progress').textContent=`${stamps} / ${target}`;
  const prize=t.recompensa||'Tu recompensa';
  const available=Math.max(0,Math.floor(Number(t.recompensas_disponibles)||0));
@@ -110,6 +158,7 @@ async function load(){
  if(busy)return;busy=true;show('loading');
  try{
   if(!validSlug){fail('El QR no contiene un negocio válido. Solicita un QR actualizado al establecimiento.');return}
+  const disenoPendiente=cargarDiseno();
   let token=savedToken();
   if(!token){
    // La emisión se realiza solo si este navegador aún no tiene tarjeta para el negocio.
@@ -120,6 +169,7 @@ async function load(){
   }
   const result=await call('consultar',{token});
   if(result.tarjeta?.slug!==slug)throw new Error('La tarjeta no corresponde a este negocio.');
+  aplicarDiseno(await disenoPendiente);
   render(result.tarjeta);
  }catch(e){
   const message=e.status===401?'El acceso público todavía no está activado.':e.status===429?'Hay demasiados registros nuevos en este momento. Inténtalo más tarde.':e.status===404&&savedToken()?'No se encontró tu tarjeta guardada. Solicita ayuda al negocio.':e.message||'Revisa tu conexión e inténtalo de nuevo.';
