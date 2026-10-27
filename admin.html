@@ -44,7 +44,7 @@ h1,h2,h3{letter-spacing:-.8px}h1 em{font-style:normal;color:#ff922f}h1{font-weig
 <section id="edit-panel" class="panel edit-panel hidden" aria-labelledby="edit-title"><div class="sub">CONFIGURACIÓN DE FIDELIDAD</div><h2 id="edit-title">Editar promoción</h2><p>Negocio seleccionado: <strong id="edit-business-name"></strong></p><form id="edit-form"><div class="formgrid"><label class="field">Sellos para recompensa<input id="edit-stamps" type="number" min="1" max="100" required></label><label class="field">Recompensa<input id="edit-reward" type="text" minlength="2" maxlength="200" required></label></div><p class="hint">Cambiar la meta no reajusta los sellos ya acumulados. Antes de cambiarla en negocios activos, hay que adaptar el cálculo de recompensas del sistema.</p><div class="actions"><button id="save-promotion" class="primary" type="submit">Guardar cambios</button><button id="cancel-promotion" class="secondary" type="button">Cancelar</button><p id="edit-message" class="message" role="status"></p></div></form></section>
 <section class="panel" id="studio-panel" aria-labelledby="studio-title"><div class="sub">DISEÑO EXCLUSIVO POR EMPRESA</div><h2 id="studio-title">🎨 SelloGo Studio</h2><p>Diseña la identidad de cada tarjeta y guarda los cambios de forma segura. Solo el administrador general puede editarla.</p>
 <div class="studio-grid"><form id="studio-form"><label class="field">Empresa<select id="studio-business" required><option value="">Selecciona un negocio</option></select></label><label class="field">Nombre del diseño<input id="studio-name" required maxlength="100" value="Diseño personalizado"></label><div class="formgrid"><label class="field">Color principal<input id="studio-primary" class="studio-color" type="color" value="#ff872f"></label><label class="field">Color secundario<input id="studio-secondary" class="studio-color" type="color" value="#101014"></label><label class="field">Color del texto<input id="studio-text" class="studio-color" type="color" value="#ffffff"></label><label class="field">Icono del sello<input id="studio-icon" maxlength="16" value="⭐" required></label></div><label class="field">Tipografía<select id="studio-font"><option value="Inter">Inter</option><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Verdana">Verdana</option><option value="Trebuchet MS">Trebuchet MS</option></select></label><label class="field">URL del logotipo<input id="studio-logo" type="url" maxlength="2000" placeholder="https://.../logo.png"></label><label class="field">URL del fondo<input id="studio-background" type="url" maxlength="2000" placeholder="https://.../fondo.jpg"></label><p class="studio-help">Por ahora utiliza enlaces HTTPS públicos de imágenes. Más adelante incorporaremos la subida directa de archivos.</p><div class="actions"><button id="studio-save" class="primary" type="submit">Guardar diseño exclusivo</button><p id="studio-message" class="message" role="status"></p></div></form>
-<div class="studio-preview"><h3>Vista previa</h3><div id="studio-preview-card" class="preview-card"><div class="preview-top"><div><div class="sub" id="studio-preview-label">TARJETA DIGITAL</div><div class="preview-title" id="studio-preview-business">Selecciona una empresa</div></div><img id="studio-preview-logo" class="preview-logo hidden" alt="Logotipo del negocio"></div><div><div class="preview-stamps" id="studio-preview-stamps"></div><div class="preview-reward" id="studio-preview-reward">Tu recompensa aparecerá aquí</div></div></div><p class="studio-note">Esta es una vista previa del diseño. Los diseños guardados se muestran en las tarjetas digitales de los clientes.</p></div></div></section>
+<div class="studio-upload-tools" style="margin-top:16px;padding:16px;border:1px solid #ffffff25;border-radius:14px;background:#111318"><strong>📁 Subir imágenes desde tu dispositivo</strong><p class="hint">Selecciona PNG, JPG o WebP (máximo 5 MB por archivo). Se publican únicamente al pulsar Guardar diseño.</p><label class="field">Logotipo del negocio<input id="studio-logo-file" type="file" accept="image/png,image/jpeg,image/webp"></label><label class="field">Fondo de la tarjeta<input id="studio-background-file" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="hint">También puedes conservar los enlaces HTTPS existentes. Las imágenes anteriores no se borran automáticamente.</p></div><div class="studio-preview"><h3>Vista previa</h3><div id="studio-preview-card" class="preview-card"><div class="preview-top"><div><div class="sub" id="studio-preview-label">TARJETA DIGITAL</div><div class="preview-title" id="studio-preview-business">Selecciona una empresa</div></div><img id="studio-preview-logo" class="preview-logo hidden" alt="Logotipo del negocio"></div><div><div class="preview-stamps" id="studio-preview-stamps"></div><div class="preview-reward" id="studio-preview-reward">Tu recompensa aparecerá aquí</div></div></div><p class="studio-note">Esta es una vista previa del diseño. Los diseños guardados se muestran en las tarjetas digitales de los clientes.</p></div></div></section>
 <section class="panel" id="qr-panel" aria-labelledby="qr-title"><div class="sub">CAPTACIÓN DE CLIENTES</div><h2 id="qr-title">▦ Generador de QR · SelloGo</h2><p>Genera el código QR exclusivo de cada negocio para registrar tarjetas digitales. El código apunta a una URL fija; no cambia al actualizar el diseño o las recompensas.</p><div class="qr-layout"><div><label class="field" for="qr-business">Selecciona el negocio<select id="qr-business"><option value="">Selecciona un negocio</option></select></label><p id="qr-state" class="qr-state" role="status">Selecciona un negocio para crear su QR.</p><label class="field" for="qr-url">Enlace del cliente<input id="qr-url" readonly placeholder="Selecciona un negocio"></label><div class="qr-tools"><button id="qr-copy" class="secondary" type="button" disabled>Copiar enlace</button><button id="qr-open" class="secondary" type="button" disabled>Abrir enlace</button><button id="qr-download" class="primary" style="margin-top:0" type="button" disabled>↓ Descargar QR PNG</button></div><p id="qr-message" class="message" role="status"></p><p class="hint">Los negocios suspendidos pueden conservar su QR, pero Supabase bloquea los registros nuevos. No cambies el slug o la dirección de la aplicación después de imprimir.</p></div><div class="qr-stage"><div class="sub">CÓDIGO QR EXCLUSIVO</div><h3 id="qr-business-name">SelloGo</h3><div class="qr-white" id="qr-image"><span style="color:#555;font-size:13px">Selecciona un negocio</span></div><div class="qr-business">SELLO<span style="color:#ff872f">GO</span></div><div class="sub">CADA COMPRA CUENTA</div></div></div></section>
 
 
@@ -215,18 +215,42 @@ async function loadBusinesses(){
  finally{button.disabled=false}
 }
 
+const SG_BUCKET='sellogo-imagenes';
+const sgPreviewUrls={logo:null,background:null};
+function sgReleasePreview(kind){if(sgPreviewUrls[kind])URL.revokeObjectURL(sgPreviewUrls[kind]);sgPreviewUrls[kind]=null}
+function sgClearFiles(){for(const kind of ['logo','background']){sgReleasePreview(kind);const input=$(kind==='logo'?'studio-logo-file':'studio-background-file');if(input)input.value=''}}
+function sgValidateFile(file){if(!file)return; if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('Solo se permiten imágenes PNG, JPG o WebP.');if(file.size>5*1024*1024)throw Error('Cada imagen debe pesar como máximo 5 MB.');if(file.size===0)throw Error('La imagen está vacía.')}
+async function sgUploadFile(file,businessId,kind){
+ sgValidateFile(file);
+ const ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[file.type];
+ const path=`${businessId}/${kind}-${crypto.randomUUID()}.${ext}`;
+ const {error}=await supabase.storage.from(SG_BUCKET).upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+ if(error)throw Error('No se pudo subir '+kind+': '+error.message);
+ const {data}=supabase.storage.from(SG_BUCKET).getPublicUrl(path);
+ if(!data?.publicUrl?.startsWith('https://'))throw Error('No se pudo generar la URL de la imagen.');
+ return {path,url:data.publicUrl};
+}
+for(const [kind,id] of [['logo','studio-logo-file'],['background','studio-background-file']]){
+ $(id).addEventListener('change',()=>{
+  sgReleasePreview(kind);
+  const f=$(id).files?.[0];
+  if(f){try{sgValidateFile(f);sgPreviewUrls[kind]=URL.createObjectURL(f)}catch(err){$(id).value='';$('studio-message').textContent=err.message}}
+  studioEditVersion++;updateStudioPreview();
+ });
+}
 function resetStudio(){
+ sgClearFiles();
  $('studio-name').value='Diseño personalizado';$('studio-primary').value='#ff872f';$('studio-secondary').value='#101014';$('studio-text').value='#ffffff';$('studio-icon').value='⭐';$('studio-font').value='Inter';$('studio-logo').value='';$('studio-background').value='';
 }
 function updateStudioPreview(){
  const b=studioBusinesses.find(x=>x.id===$('studio-business').value);
  const primary=$('studio-primary').value,secondary=$('studio-secondary').value,foreground=$('studio-text').value;
  const card=$('studio-preview-card');card.style.backgroundColor=secondary;card.style.color=foreground;card.style.borderColor=primary;
- const background=$('studio-background').value.trim();card.style.backgroundImage=background.startsWith('https://')?`linear-gradient(#0006,#0006),url("${encodeURI(background).replaceAll('"','%22')}")`:'none';
+ const background=sgPreviewUrls.background||$('studio-background').value.trim();card.style.backgroundImage=(background.startsWith('https://')||background.startsWith('blob:'))?`linear-gradient(#0006,#0006),url("${encodeURI(background).replaceAll('"','%22')}")`:'none';
  const fonts={'Inter':'Inter,system-ui,sans-serif','Arial':'Arial,sans-serif','Georgia':'Georgia,serif','Verdana':'Verdana,sans-serif','Trebuchet MS':'Trebuchet MS,sans-serif'};card.style.fontFamily=fonts[$('studio-font').value]||fonts.Inter;
  $('studio-preview-business').textContent=b?.nombre||'Selecciona una empresa';$('studio-preview-label').textContent=$('studio-name').value.trim()||'TARJETA DIGITAL';
  $('studio-preview-reward').textContent=b?'🎁 '+b.recompensa:'Tu recompensa aparecerá aquí';
- const logo=$('studio-logo').value.trim(),img=$('studio-preview-logo');img.classList.toggle('hidden',!logo.startsWith('https://'));if(logo.startsWith('https://'))img.src=logo;else img.removeAttribute('src');
+ const logo=sgPreviewUrls.logo||$('studio-logo').value.trim(),img=$('studio-preview-logo');img.classList.toggle('hidden',!(logo.startsWith('https://')||logo.startsWith('blob:')));if(logo.startsWith('https://')||logo.startsWith('blob:'))img.src=logo;else img.removeAttribute('src');
  const holder=$('studio-preview-stamps');holder.replaceChildren();const n=Math.min(Math.max(Number(b?.sellos_objetivo)||5,1),100);holder.style.gridTemplateColumns=`repeat(${Math.min(n,5)},1fr)`;
  for(let i=0;i<n;i++){const el=document.createElement('span');el.className='preview-stamp';el.style.borderColor=primary;el.textContent=$('studio-icon').value||'⭐';holder.append(el)}
 }
@@ -261,6 +285,17 @@ $('studio-form').addEventListener('submit',async e=>{
  try{
   if(!params.p_nombre_diseno)throw Error('Escribe un nombre para el diseño.');
   if((params.p_logo_url&&!params.p_logo_url.startsWith('https://'))||(params.p_fondo_url&&!params.p_fondo_url.startsWith('https://')))throw Error('Las imágenes deben usar enlaces HTTPS.');
+  // Subir imágenes nuevas antes de guardar el diseño. No tocar imágenes antiguas.
+  const uploaded=[];
+  try{
+   for(const [kind,inputId,param] of [['logo','studio-logo-file','p_logo_url'],['background','studio-background-file','p_fondo_url']]){
+    const file=$(inputId).files?.[0];
+    if(file){$('studio-message').textContent=`Subiendo ${kind}…`;const result=await sgUploadFile(file,id,kind);uploaded.push(result.path);params[param]=result.url}
+   }
+  }catch(uploadError){
+   if(uploaded.length)await supabase.storage.from(SG_BUCKET).remove(uploaded);
+   throw uploadError;
+  }
   // Invalida cualquier carga anterior que pudiera sobrescribir los campos.
   ++studioLoadToken;
   const {error}=await supabase.rpc('sellogo_guardar_diseno',params);
@@ -275,6 +310,7 @@ $('studio-form').addEventListener('submit',async e=>{
   const mismatch=Object.entries(fields).find(([p,col])=>String(stored[col]??'').toLowerCase()!==String(params[p]??'').toLowerCase());
   if(mismatch)throw Error('La verificación detectó una diferencia en «'+mismatch[1]+'». Comprueba que ningún otro editor esté modificando el diseño.');
   if($('studio-business').value===id){
+   $('studio-logo').value=stored.logo_url||'';$('studio-background').value=stored.fondo_url||'';sgClearFiles();updateStudioPreview();
    $('studio-message').textContent='✓ Diseño guardado y verificado en Supabase: '+stored.nombre_diseno;
    $('studio-message').classList.add('success');
   }
@@ -693,3 +729,4 @@ async function logout(){++requestsLoadToken;$('requests-list').replaceChildren()
 $('logout').addEventListener('click',logout);$('blocked-logout').addEventListener('click',logout);$('refresh-businesses').addEventListener('click',loadBusinesses);
 await verify();
 </script></body></html>
+
