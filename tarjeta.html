@@ -87,6 +87,23 @@
 @keyframes sg-rise{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes sg-card-in{from{transform:translateY(22px) scale(.975);opacity:.4}to{transform:translateY(0) scale(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.sg-intro,.sg-intro *,.sg-card-reveal .card,.sg-card-reveal .stamp{animation:none!important;transition:none!important}}
+
+/* SelloGo: corrección responsive para nombres largos y metas de 5 sellos. */
+.card-head .name{overflow-wrap:normal;word-break:normal;hyphens:none}
+.card.long-business .card-head{display:grid;grid-template-columns:clamp(42px,12vw,58px) minmax(0,1fr);column-gap:12px;row-gap:6px;align-items:center}
+.card.long-business .negocio-logo:not(.hidden){grid-column:1;grid-row:1 / span 2;max-width:100%;height:auto;aspect-ratio:1}
+.card.long-business .card-head .name{grid-column:2;grid-row:1;margin:0;font-size:clamp(18px,5vw,25px);line-height:1.14;min-width:0}
+.card.long-business .card-head .tag{grid-column:2;grid-row:2;justify-self:end;white-space:nowrap}
+.card.long-business .negocio-logo.hidden + .name{grid-column:1 / -1}
+.card.long-business .negocio-logo.hidden ~ .tag{grid-column:1 / -1}
+.stamps.five-stamps{grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(5px,1.8vw,10px)}
+.stamps.five-stamps .stamp{min-width:0;font-size:clamp(15px,4.8vw,23px)}
+@media(max-width:390px){
+ .card.long-business{padding:clamp(13px,4vw,20px)}
+ .card.long-business .card-head{column-gap:9px}
+ .card.long-business .card-head .name{font-size:clamp(17px,4.6vw,21px)}
+ .stamps.five-stamps{gap:5px}
+}
 </style>
 </head>
 <body><div id="sg-intro" class="sg-intro sg-gone" aria-hidden="true"><div class="sg-intro-inner"><div class="sg-stamp-mark"><div class="sg-stamp-symbol"><span class="sg-letter">S</span><span class="sg-squares"><i></i><i></i><i></i><i></i></span></div><div class="sg-ring"></div></div><div class="sg-intro-title">Sello<b>Go</b></div><div class="sg-intro-tagline">Cada visita cuenta</div></div></div>
@@ -186,6 +203,7 @@ function sgSignatureWelcome(){
 
 function render(t){
  $('business-name').textContent=t.negocio||'Mi negocio';
+ document.querySelector('.card').classList.toggle('long-business',(t.negocio||'').trim().length>23);
  $('public-card-id').textContent=t.id||'No disponible';
  const qr=$('personal-qr');qr.replaceChildren();
  const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -196,6 +214,7 @@ function render(t){
  const target=Math.max(1,Math.min(100,Number(t.sellos_objetivo)||5));
  const stamps=Math.max(0,Math.min(target,Number(t.sellos)||0));
  $('stamps').replaceChildren();
+ $('stamps').classList.toggle('five-stamps',target===5);
  for(let i=0;i<target;i++){const dot=document.createElement('div');dot.className='stamp'+(i<stamps?' on':'');dot.textContent=i<stamps?(diseno?.icono||'✓'):'✦';dot.style.setProperty('--sg-i',String(Math.min(i,12)));$('stamps').append(dot)}
  $('progress').textContent=`${stamps} / ${target}`;
  const prize=t.recompensa||'Tu recompensa';
