@@ -65,3 +65,12 @@ test('se conserva la página de tarjeta pública', () => {
   assert.ok(card.length > 1000);
   assert.match(card, /negocio/);
 });
+
+test('la tarjeta pública de producción no se modifica accidentalmente', () => {
+  // Huella del blob de Git auditado. Cualquier cambio requiere revisión consciente.
+  const crypto = require('node:crypto');
+  const data = Buffer.from(card, 'utf8');
+  const header = Buffer.from('blob ' + data.length + String.fromCharCode(0));
+  const actual = crypto.createHash('sha1').update(header).update(data).digest('hex');
+  assert.equal(actual, '7bcb54f9b3d56e4d1365562992ff9b6f543ddd45');
+});
