@@ -43,3 +43,13 @@ Referencia: https://supabase.com/docs/guides/database/database-linter?lint=0001_
 5. No considerar resuelta una advertencia hasta verificar la corrección real.
 
 **Estado:** diagnóstico realizado; correcciones de base de datos pendientes.
+
+## Revisión posterior: protección de contraseñas filtradas
+
+El asesor de seguridad también reporta `auth_leaked_password_protection` (WARN, 1 hallazgo): la protección de Supabase Auth frente a contraseñas comprometidas no está habilitada.
+
+**Acción recomendada, pendiente:** revisar en Supabase Dashboard → Authentication → Settings la opción de protección de contraseñas filtradas y habilitarla si el plan actual la ofrece, verificando el impacto en el inicio de sesión y los flujos de cambio de contraseña. No se modificó la configuración de Auth.
+
+La revisión volvió a mostrar: 7 tablas con RLS sin políticas, 2 funciones SECURITY DEFINER accesibles a anon y 29 accesibles a authenticated. Los números son avisos de revisión, **no** 38 vulnerabilidades confirmadas. No revocar permisos masivamente: algunas funciones deben ser públicas o autenticadas para operar.
+
+Referencia: https://supabase.com/docs/guides/auth/password-security
