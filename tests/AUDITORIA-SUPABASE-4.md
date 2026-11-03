@@ -130,3 +130,14 @@ Se inspeccionó el código desplegado de la Edge Function activa (versión 5), *
 - **Otro punto:** el límite de 3 emisiones por IP y negocio por hora puede afectar a clientes legítimos que comparten red (por ejemplo, Wi-Fi del establecimiento). Evaluar experiencia de usuario antes de modificar cuotas.
 
 No se realizaron peticiones de emisión de prueba, cambios en producción ni despliegues.
+
+## Integración real de QR público y riesgo de Wi-Fi compartido — noviembre de 2026
+
+Se inspeccionaron los archivos del repositorio:
+
+- `tarjeta.html` utiliza `/functions/v1/sellogo-tarjetas` como endpoint público. Primero busca un token en `localStorage`; si no existe, llama a `accion=emitir` con `slug` y guarda el token recibido. Luego consulta con `accion=consultar`. Por tanto, **el límite de emisión sí afecta directamente a los QR públicos actuales**.
+- `cliente.html` es un flujo distinto: llama a la RPC autenticada `sellogo_registrar_tarjeta`. No debe confundirse con el flujo de `tarjeta.html`.
+- Con el límite de 3 emisiones por IP/negocio/hora de `sellogo_emitir_tarjeta_interna`, varios clientes nuevos compartiendo Wi-Fi o una IP de operador móvil pueden sufrir falsos bloqueos. El límite se aplica al hash `slug:IP` generado por el servicio.
+- La Edge Function usa el primer valor de `x-forwarded-for` sin validar explícitamente un proxy confiable. **No se ha confirmado** si el gateway de Supabase sobrescribe cabeceras proporcionadas por el cliente; no afirmar que exista explotación hasta verificarlo.
+- Recomendación de diseño: validar la IP en un borde confiable, combinar límite por IP con límite global y señales adicionales, y definir una política compatible con comercios de alto tráfico. Probar primero con escenarios controlados antes de desplegar.
+- **No se modificó `tarjeta.html`, no se emitieron tarjetas ni se alteraron cuotas.**
