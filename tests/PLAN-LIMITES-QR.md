@@ -55,3 +55,7 @@ Se ejecutará en pushes y pull requests con cambios relevantes, o manualmente co
 ## Resultado de ejecución local de pruebas aisladas
 
 Se ejecutó con Node.js una copia local equivalente de los cinco casos de `tests/limites-qr-aislados.test.cjs`: **5 aprobadas, 0 fallidas**. La ejecución no utilizó GitHub Actions ni realizó llamadas a Supabase. Este resultado verifica la lógica de selección de encabezado simulada; no verifica el comportamiento real del gateway. El estado de las otras 17 pruebas y del workflow completo sigue sin confirmarse.
+
+## GitHub Actions: ejecución confirmada
+
+La ejecución [41580952099](https://github.com/SellogoMx/sellogo-app/actions/runs/41580952099), asociada al commit `7b7e1055a00ecdefa82580f64fa45db0fbb05897`, terminó con `status=completed` y `conclusion=success`. El trabajo `seguridad-estatica`, incluido el paso `Ejecutar pruebas sin acceso a Supabase`, también terminó correctamente. El workflow ejecuta 17 pruebas estáticas, 5 de selección de IP y 6 de validación propuesta (28 definidas en total). **Esto no verifica el comportamiento del proxy ni los límites reales de producción.** Las menciones anteriores a ejecución no confirmada se refieren a revisiones previas.
