@@ -41,3 +41,13 @@ Las 17 pruebas estáticas de `tests/seguridad-estatica.test.cjs` cubren regresio
 ## Pruebas aisladas de selección de IP
 
 Se agregó `tests/limites-qr-aislados.test.cjs` con 5 casos sin llamadas a Supabase. Reproduce la selección `x-forwarded-for?.split(',')[0]?.trim()` de la Edge Function desplegada. Muestra que un cambio en el primer valor cambia la IP seleccionada y que no se valida su sintaxis. **Esto es una observación del código, no una explotación demostrada**: falta verificar si el gateway permite influir en ese primer valor. El archivo quedó registrado en GitHub; no se ha confirmado una ejecución real de la suite mediante Node/GitHub Actions. No se desplegó ningún cambio.
+
+## Integración continua — 22 pruebas configuradas
+
+El flujo `.github/workflows/seguridad-estatica.yml` fue actualizado para ejecutar ambos archivos con Node 22:
+
+```sh
+node --test tests/seguridad-estatica.test.cjs tests/limites-qr-aislados.test.cjs
+```
+
+Se ejecutará en pushes y pull requests con cambios relevantes, o manualmente con `workflow_dispatch`. Las 17 pruebas estáticas y las 5 pruebas aisladas están configuradas, **pero no se ha comprobado todavía un resultado verde de GitHub Actions**. Ninguna de estas pruebas genera tarjetas ni interactúa con Supabase.
