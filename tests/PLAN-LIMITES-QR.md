@@ -51,3 +51,7 @@ node --test tests/seguridad-estatica.test.cjs tests/limites-qr-aislados.test.cjs
 ```
 
 Se ejecutará en pushes y pull requests con cambios relevantes, o manualmente con `workflow_dispatch`. Las 17 pruebas estáticas y las 5 pruebas aisladas están configuradas, **pero no se ha comprobado todavía un resultado verde de GitHub Actions**. Ninguna de estas pruebas genera tarjetas ni interactúa con Supabase.
+
+## Resultado de ejecución local de pruebas aisladas
+
+Se ejecutó con Node.js una copia local equivalente de los cinco casos de `tests/limites-qr-aislados.test.cjs`: **5 aprobadas, 0 fallidas**. La ejecución no utilizó GitHub Actions ni realizó llamadas a Supabase. Este resultado verifica la lógica de selección de encabezado simulada; no verifica el comportamiento real del gateway. El estado de las otras 17 pruebas y del workflow completo sigue sin confirmarse.
