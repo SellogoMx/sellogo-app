@@ -171,6 +171,22 @@ h1,h2,h3{letter-spacing:-.8px}h1 em{font-style:normal;color:#ff922f}h1{font-weig
 #studio-panel .sg-ai-note strong{font-size:13px;color:#ffb77d}
 #studio-panel .sg-ai-note p{font-size:12px;color:#adb2bc;margin:6px 0 0}
 #studio-panel .studio-grid>form{min-width:0}
+
+/* Carteles QR personalizados: fondo decorativo, QR de alto contraste */
+#qr-panel .sg-qr-custom{margin:20px 0 12px;padding:18px;background:#101419;border:1px solid #ffffff1c;border-radius:15px}
+#qr-panel .sg-qr-custom>strong{font-size:14px}
+#qr-panel .sg-qr-custom p{font-size:12px;margin:7px 0 13px;color:#aab0ba}
+#qr-panel .sg-qr-upload{display:block;text-align:center;cursor:pointer;padding:14px;border-radius:12px;border:1px dashed #ff9c4d8a;background:#ff9c4d0d;color:#ffc08b;font-weight:750;font-size:12px}
+#qr-panel .sg-qr-upload:hover{background:#ff9c4d1c}
+#qr-panel #sg-qr-bg{width:100%;font-size:11px;padding:7px;margin:4px 0;background:transparent;border:0}
+#qr-panel #sg-qr-bg::file-selector-button{display:none}
+#qr-panel #sg-qr-bg-name{display:block;font-size:11px;color:#b0b5be;overflow-wrap:anywhere;margin:3px 0 10px}
+#qr-panel #sg-qr-clear{padding:8px 12px;font-size:11px}
+#qr-panel .qr-stage{background-color:#121820;background-size:cover;background-position:center;position:relative;overflow:hidden;isolation:isolate}
+#qr-panel .qr-stage.sg-qr-has-bg:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#000a,#0005 40%,#000c);z-index:-1}
+#qr-panel .qr-stage.sg-qr-has-bg .sub,#qr-panel .qr-stage.sg-qr-has-bg h3,#qr-panel .qr-stage.sg-qr-has-bg .qr-business{color:#fff;text-shadow:0 2px 9px #000}
+#qr-panel .qr-white{padding:22px;box-shadow:0 8px 24px #0006}
+#qr-panel #sg-qr-poster-download{background:#ff9c38}
 </style>
 <style id="google-auth-style">.google-separator{display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:#9da0aa;font-size:12px}.google-separator:before,.google-separator:after{content:"";height:1px;background:#ffffff26;flex:1}.google-signin{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 16px;border:1px solid #ffffff45;border-radius:13px;background:#fff;color:#242424;font-weight:750;transition:background .2s}.google-signin:hover{background:#eee}.google-signin:disabled{opacity:.6;cursor:wait}</style></head>
 <body><main class="shell">
@@ -189,7 +205,7 @@ h1,h2,h3{letter-spacing:-.8px}h1 em{font-style:normal;color:#ff922f}h1{font-weig
 <div class="sg-ai-note"><strong>✧ Diseños con IA</strong><p>Próximamente podrás generar fondos con una descripción. Por ahora puedes crear la imagen conmigo y subirla aquí.</p></div>
 <div class="actions"><button id="studio-save" class="primary" type="submit">Guardar diseño</button><p id="studio-message" class="message" role="status"></p></div></form>
 <div class="studio-preview"><div class="sg3-heading"><div><small>SELLOGO SIGNATURE · STUDIO 3.0</small><h3>Vista previa en vivo</h3></div><span class="sg3-live">● LIVE</span></div><div id="studio-preview-card" class="preview-card"><div class="sg3-kicker">✦ MEMBRESÍA DIGITAL <span>SELLOGO SIGNATURE</span></div><div class="preview-top"><div><div class="sub" id="studio-preview-label">TARJETA DIGITAL</div><div class="preview-title" id="studio-preview-business">Selecciona una empresa</div></div><img id="studio-preview-logo" class="preview-logo hidden" alt="Logotipo del negocio"></div><div class="sg3-stamps-box"><div class="sg3-row"><strong>SELLOS ACUMULADOS</strong><strong id="sg3-count">0 / 5</strong></div><div class="preview-stamps" id="studio-preview-stamps"></div><div class="sg3-track"><div id="sg3-progress"></div></div><p>Vista previa de ejemplo, no representa los sellos reales.</p></div><div class="sg3-reward"><span>✦</span><div><small>TU RECOMPENSA</small><div class="preview-reward" id="studio-preview-reward">Tu recompensa aparecerá aquí</div></div></div><div class="sg3-qr">▦ &nbsp; MI CÓDIGO QR</div><div class="sg3-footer">CADA VISITA CUENTA · <b>SELLOGO</b></div></div><p class="studio-note">La vista previa es ilustrativa. Los cambios solo se publican al guardar el diseño; no se alteran sellos, QR ni recompensas.</p></div></div></section>
-<section class="panel" id="qr-panel" aria-labelledby="qr-title"><div class="sub">CAPTACIÓN DE CLIENTES</div><h2 id="qr-title">▦ Generador de QR · SelloGo</h2><p>Genera el código QR exclusivo de cada negocio para registrar tarjetas digitales. El código apunta a una URL fija; no cambia al actualizar el diseño o las recompensas.</p><div class="qr-layout"><div><label class="field" for="qr-business">Selecciona el negocio<select id="qr-business"><option value="">Selecciona un negocio</option></select></label><p id="qr-state" class="qr-state" role="status">Selecciona un negocio para crear su QR.</p><label class="field" for="qr-url">Enlace del cliente<input id="qr-url" readonly placeholder="Selecciona un negocio"></label><div class="qr-tools"><button id="qr-copy" class="secondary" type="button" disabled>Copiar enlace</button><button id="qr-open" class="secondary" type="button" disabled>Abrir enlace</button><button id="qr-download" class="primary" style="margin-top:0" type="button" disabled>↓ Descargar QR PNG</button></div><p id="qr-message" class="message" role="status"></p><p class="hint">Los negocios suspendidos pueden conservar su QR, pero Supabase bloquea los registros nuevos. No cambies el slug o la dirección de la aplicación después de imprimir.</p></div><div class="qr-stage"><div class="sub">CÓDIGO QR EXCLUSIVO</div><h3 id="qr-business-name">SelloGo</h3><div class="qr-white" id="qr-image"><span style="color:#555;font-size:13px">Selecciona un negocio</span></div><div class="qr-business">SELLO<span style="color:#ff872f">GO</span></div><div class="sub">CADA COMPRA CUENTA</div></div></div></section>
+<section class="panel" id="qr-panel" aria-labelledby="qr-title"><div class="sub">CAPTACIÓN DE CLIENTES</div><h2 id="qr-title">▦ Generador de QR · SelloGo</h2><p>Genera el código QR exclusivo de cada negocio para registrar tarjetas digitales. El código apunta a una URL fija; no cambia al actualizar el diseño o las recompensas.</p><div class="qr-layout"><div><label class="field" for="qr-business">Selecciona el negocio<select id="qr-business"><option value="">Selecciona un negocio</option></select></label><p id="qr-state" class="qr-state" role="status">Selecciona un negocio para crear su QR.</p><label class="field" for="qr-url">Enlace del cliente<input id="qr-url" readonly placeholder="Selecciona un negocio"></label><div class="sg-qr-custom"><strong>Personaliza el cartel QR</strong><p>Sube una imagen que represente al negocio. El código QR siempre conservará su enlace original.</p><label class="sg-qr-upload" for="sg-qr-bg">▧ Elegir fondo desde mi dispositivo</label><input id="sg-qr-bg" type="file" accept="image/png,image/jpeg,image/webp"><span id="sg-qr-bg-name">Sin fondo seleccionado</span><button id="sg-qr-clear" class="secondary" type="button">Quitar fondo</button></div><div class="qr-tools"><button id="qr-copy" class="secondary" type="button" disabled>Copiar enlace</button><button id="qr-open" class="secondary" type="button" disabled>Abrir enlace</button><button id="qr-download" class="primary" style="margin-top:0" type="button" disabled>↓ Descargar QR PNG</button><button id="sg-qr-poster-download" class="primary" style="margin-top:0" type="button" disabled>↓ Descargar cartel personalizado</button></div><p id="qr-message" class="message" role="status"></p><p class="hint">Los negocios suspendidos pueden conservar su QR, pero Supabase bloquea los registros nuevos. No cambies el slug o la dirección de la aplicación después de imprimir.</p></div><div class="qr-stage" id="sg-qr-stage"><div class="sub">CÓDIGO QR EXCLUSIVO</div><h3 id="qr-business-name">SelloGo</h3><div class="qr-white" id="qr-image"><span style="color:#555;font-size:13px">Selecciona un negocio</span></div><div class="qr-business">SELLO<span style="color:#ff872f">GO</span></div><div class="sub">CADA COMPRA CUENTA</div></div></div></section>
 
 
 <div class="sg-section-label"><span>04 / INTELIGENCIA COMERCIAL</span><h2>Estadísticas y reportes</h2><p>Consulta el rendimiento de los programas de lealtad.</p></div><section class="panel" id="analytics-panel" aria-labelledby="analytics-title">
@@ -464,6 +480,62 @@ $('studio-form').addEventListener('submit',async e=>{
 
 
 // Generador QR: URL fija, sin almacenar códigos en la base de datos.
+
+let sgQrBackgroundUrl='',sgQrBackgroundFile=null;
+function sgQrResetBackground(){
+ if(sgQrBackgroundUrl)URL.revokeObjectURL(sgQrBackgroundUrl);
+ sgQrBackgroundUrl='';sgQrBackgroundFile=null;
+ $('sg-qr-bg').value='';$('sg-qr-bg-name').textContent='Sin fondo seleccionado';
+ const stage=$('sg-qr-stage');stage.style.backgroundImage='';stage.classList.remove('sg-qr-has-bg');
+}
+$('sg-qr-bg').addEventListener('change',()=>{
+ const f=$('sg-qr-bg').files?.[0];if(!f){sgQrResetBackground();return}
+ if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>5*1024*1024||!f.size){
+  $('qr-message').textContent='Selecciona una imagen PNG, JPG o WebP de máximo 5 MB.';sgQrResetBackground();return;
+ }
+ if(sgQrBackgroundUrl)URL.revokeObjectURL(sgQrBackgroundUrl);
+ sgQrBackgroundFile=f;sgQrBackgroundUrl=URL.createObjectURL(f);
+ $('sg-qr-bg-name').textContent=f.name;
+ $('sg-qr-stage').style.backgroundImage='url("'+sgQrBackgroundUrl+'")';
+ $('sg-qr-stage').classList.add('sg-qr-has-bg');
+ $('qr-message').textContent='Fondo listo. Descarga el cartel para imprimir.';
+});
+$('sg-qr-clear').addEventListener('click',sgQrResetBackground);
+function sgQrLoadImage(url){
+ return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('No se pudo abrir la imagen.'));img.src=url});
+}
+function sgQrFitText(ctx,text,maxWidth,maxSize){
+ let size=maxSize;ctx.font='800 '+size+'px system-ui,sans-serif';
+ while(ctx.measureText(text).width>maxWidth&&size>24){size-=2;ctx.font='800 '+size+'px system-ui,sans-serif'}
+ return size;
+}
+$('sg-qr-poster-download').addEventListener('click',async()=>{
+ if(!qrReady)return;
+ const b=studioBusinesses.find(x=>x.id===$('qr-business').value);if(!b)return;
+ const btn=$('sg-qr-poster-download');btn.disabled=true;
+ try{
+  const source=$('qr-image').querySelector('canvas');if(!source)throw Error('El QR no está disponible.');
+  const W=900,H=1200,out=document.createElement('canvas');out.width=W;out.height=H;
+  const ctx=out.getContext('2d');if(!ctx)throw Error('Tu navegador no permite crear imágenes.');
+  const gradient=ctx.createLinearGradient(0,0,W,H);gradient.addColorStop(0,'#1b202b');gradient.addColorStop(1,'#111318');ctx.fillStyle=gradient;ctx.fillRect(0,0,W,H);
+  if(sgQrBackgroundUrl){
+   const img=await sgQrLoadImage(sgQrBackgroundUrl),scale=Math.max(W/img.width,H/img.height),iw=img.width*scale,ih=img.height*scale;
+   ctx.drawImage(img,(W-iw)/2,(H-ih)/2,iw,ih);
+  }
+  const shade=ctx.createLinearGradient(0,0,0,H);shade.addColorStop(0,'rgba(0,0,0,.76)');shade.addColorStop(.45,'rgba(0,0,0,.48)');shade.addColorStop(1,'rgba(0,0,0,.85)');ctx.fillStyle=shade;ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';ctx.fillStyle='#ffad61';ctx.font='800 26px system-ui,sans-serif';ctx.fillText('SELLOGO  ·  CADA VISITA CUENTA',W/2,100);
+  ctx.fillStyle='#fff';sgQrFitText(ctx,b.nombre||'Tu negocio',W-100,58);ctx.fillText(b.nombre||'Tu negocio',W/2,225);
+  ctx.font='600 32px system-ui,sans-serif';ctx.fillText('¡ESCANEA Y ACUMULA SELLOS!',W/2,303);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(175,365,550,550,30);ctx.fill();
+  ctx.imageSmoothingEnabled=false;ctx.drawImage(source,210,400,480,480);ctx.imageSmoothingEnabled=true;
+  ctx.fillStyle='#fff';ctx.font='700 31px system-ui,sans-serif';ctx.fillText('Abre tu cámara y escanea el código',W/2,995);
+  ctx.fillStyle='#ffb36b';ctx.font='600 25px system-ui,sans-serif';ctx.fillText('Tu tarjeta digital te espera',W/2,1042);
+  const blob=await new Promise(resolve=>out.toBlob(resolve,'image/png'));if(!blob)throw Error('No se pudo exportar el cartel.');
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='SelloGo-Cartel-QR-'+b.slug+'.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  $('qr-message').textContent='✓ Cartel descargado. Escanea el QR de prueba antes de imprimir.';
+ }catch(err){$('qr-message').textContent='No se pudo crear el cartel: '+(err?.message||'Error desconocido')}
+ finally{btn.disabled=!qrReady}
+});
 const qrBase='https://sellogomx.github.io/sellogo-app/tarjeta.html';
 let qrUrl='',qrReady=false;
 function renderBusinessQR(){
@@ -474,6 +546,7 @@ function renderBusinessQR(){
  $('qr-business-name').textContent=b?.nombre||'SelloGo';
  $('qr-copy').disabled=$('qr-open').disabled=!b;
  $('qr-download').disabled=true;
+ $('sg-qr-poster-download').disabled=true;
  $('qr-message').textContent='';
  const holder=$('qr-image');holder.replaceChildren();
  if(!b){$('qr-state').textContent='Selecciona un negocio para crear su QR.';const label=document.createElement('span');label.style.color='#555';label.textContent='Selecciona un negocio';holder.append(label);return;}
@@ -481,10 +554,10 @@ function renderBusinessQR(){
  if(typeof window.QRCode!=='function'){$('qr-message').textContent='No se pudo cargar el generador de QR. Revisa tu conexión y actualiza la página.';return;}
  try{
   new window.QRCode(holder,{text:qrUrl,width:256,height:256,colorDark:'#101014',colorLight:'#ffffff',correctLevel:window.QRCode.CorrectLevel.H});
-  qrReady=true;$('qr-download').disabled=false;
+  qrReady=true;$('qr-download').disabled=false;$('sg-qr-poster-download').disabled=false;
  }catch(e){$('qr-message').textContent='No se pudo crear el QR: '+(e?.message||'Error desconocido');}
 }
-$('qr-business').addEventListener('change',renderBusinessQR);
+$('qr-business').addEventListener('change',()=>{sgQrResetBackground();renderBusinessQR()});
 $('qr-copy').addEventListener('click',async()=>{if(!qrUrl)return;try{await navigator.clipboard.writeText(qrUrl);$('qr-message').textContent='✓ Enlace copiado.'}catch(e){$('qr-url').select();$('qr-message').textContent='Selecciona y copia el enlace del campo.'}});
 $('qr-open').addEventListener('click',()=>{if(qrUrl)window.open(qrUrl,'_blank','noopener,noreferrer')});
 $('qr-download').addEventListener('click',()=>{
