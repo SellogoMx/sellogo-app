@@ -37,3 +37,7 @@ Las 17 pruebas estáticas de `tests/seguridad-estatica.test.cjs` cubren regresio
 - La documentación de Supabase sobre límites de llamadas recursivas entre Edge Functions explica que esos límites afectan a llamadas **salientes entre funciones**, no a las solicitudes **entrantes** del público. No sustituye los límites de emisión implementados en la RPC.
 - La prueba de manipulación de cabeceras debe ejecutarse en un entorno controlado o mediante un procedimiento autorizado que no emita tarjetas reales ni divulgue IPs o tokens.
 - **No se modificó producción ni se confirmó una vulnerabilidad explotable.**
+
+## Pruebas aisladas de selección de IP
+
+Se agregó `tests/limites-qr-aislados.test.cjs` con 5 casos sin llamadas a Supabase. Reproduce la selección `x-forwarded-for?.split(',')[0]?.trim()` de la Edge Function desplegada. Muestra que un cambio en el primer valor cambia la IP seleccionada y que no se valida su sintaxis. **Esto es una observación del código, no una explotación demostrada**: falta verificar si el gateway permite influir en ese primer valor. El archivo quedó registrado en GitHub; no se ha confirmado una ejecución real de la suite mediante Node/GitHub Actions. No se desplegó ningún cambio.
