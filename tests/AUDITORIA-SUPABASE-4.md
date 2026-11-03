@@ -80,3 +80,15 @@ Se leyeron las definiciones SQL de otras cuatro funciones `SECURITY DEFINER`:
 **Conclusión limitada:** las definiciones revisadas contienen restricciones razonables de identidad, pertenencia o estado. No son pruebas dinámicas de RLS ni de acceso entre usuarios. Queda pendiente verificar la función `sellogo_verificar_negocio_activo` y el comportamiento de errores y concurrencia.
 
 No se ejecutaron modificaciones SQL.
+
+## Validación del estado de negocios — noviembre de 2026
+
+Se leyó la definición SQL de `public.sellogo_verificar_negocio_activo(p_negocio_id uuid)`. La función consulta `public.negocios.estado` y:
+
+- Rechaza negocios inexistentes mediante `RAISE EXCEPTION 'Negocio no encontrado'`.
+- Permite los estados `activo` y `prueba`.
+- Rechaza otros estados (incluido `suspendido`) mediante una excepción.
+
+La función es `SECURITY DEFINER` con `search_path TO ''`. Esta validación se invoca desde las funciones de registro y operación de sellos revisadas. **La validación de estado no sustituye la comprobación de identidad y pertenencia al negocio** que cada operación debe realizar.
+
+**Estado:** revisión estática satisfactoria; sin pruebas dinámicas de cuentas ni modificaciones a producción.
