@@ -113,3 +113,12 @@ body{background:radial-gradient(ellipse 800px 440px at 92% -8%,#ff86231c,transpa
 .sg-workspace .field,.sg-workspace .btn{min-height:53px}
 .sg-workspace .actions{grid-template-columns:1fr}
 }
+
+/* Ficha premium del cliente: datos de la cuenta autorizada, sin HTML de usuario */
+.sg-client-identity{display:flex;align-items:center;gap:17px;padding:22px;margin:4px 0 24px;border:1px solid #ff9b4544;border-radius:20px;background:linear-gradient(110deg,#ff8c241b,#ffffff05)}
+.sg-client-avatar{display:grid;place-items:center;flex:none;width:58px;height:58px;border-radius:18px;background:linear-gradient(140deg,#ffb65e,#ff7b2c);color:#25140b;font-size:28px;box-shadow:0 9px 25px #ff8c242b}
+.sg-client-identity>div{min-width:0;display:grid;gap:5px}
+.sg-client-kicker{font-size:10px;letter-spacing:1.6px;font-weight:800;color:#ffb57b}
+#sg-client-name{font-size:clamp(19px,2.5vw,27px);line-height:1.25;overflow-wrap:anywhere;letter-spacing:-.5px}
+#sg-client-business{color:#afb1bb;font-size:13px;overflow-wrap:anywhere}
+@media(max-width:760px){.sg-client-identity{padding:17px;gap:13px}.sg-client-avatar{width:48px;height:48px;font-size:24px}}
