@@ -13,6 +13,7 @@ const employee = read('index.html');
 const admin = read('admin.html');
 const owner = read('propietario.html');
 const card = read('tarjeta.html');
+const client = read('cliente.html');
 const config = read('config.js');
 
 test('los paneles usan configuración compartida', () => {
@@ -84,4 +85,13 @@ test('el frontend no llama a la función interna de RLS', () => {
   for (const [name, source] of [['empleados', employee], ['administración', admin], ['propietarios', owner], ['tarjeta pública', card]]) {
     assert.doesNotMatch(source, /rls_auto_enable\s*\(/, name);
   }
+});
+
+test('registro QR conserva búsqueda del negocio', () => {
+  assert.match(client, /sellogo_buscar_negocio_qr/);
+  assert.match(client, /p_slug:qrSlug/);
+});
+
+test('registro QR no contiene claves privadas de servidor', () => {
+  assert.doesNotMatch(client, /SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+/i);
 });
