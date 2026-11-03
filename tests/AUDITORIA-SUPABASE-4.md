@@ -115,3 +115,18 @@ Inspección SQL de triggers, tablas, funciones y privilegios:
 - **Pendiente:** verificar qué servicio llama a estas funciones, cómo calcula el identificador, si aplica controles de frecuencia antes de invocar la función y cómo se gestionan tokens expuestos o perdidos. El límite por identificador puede evadirse si el emisor acepta identificadores arbitrarios; esta revisión SQL no prueba que ocurra.
 
 No se ejecutaron escrituras SQL ni pruebas de emisión real.
+
+## Auditoría de Edge Function `sellogo-tarjetas` — noviembre de 2026
+
+Se inspeccionó el código desplegado de la Edge Function activa (versión 5), **sin desplegar cambios**:
+
+- `verify_jwt=false`: endpoint público intencional para emisión/consulta de tarjetas; se debe proteger con controles de abuso independientes.
+- Solo admite `POST` y preflight `OPTIONS`; valida acción `consultar` o `emitir`.
+- Para consulta exige token hexadecimal de 64 caracteres y llama a `sellogo_consultar_tarjeta_privada`.
+- Para emisión valida `slug`, exige `SELLOGO_RATE_LIMIT_SECRET`, calcula HMAC-SHA256 de `slug:ip` y llama a `sellogo_emitir_tarjeta_interna` con el identificador calculado en el servidor.
+- Utiliza una clave interna `sb_secret_` del entorno para las RPC privadas; no se encontró exposición de esa clave en el cuerpo de respuesta.
+- Traduce errores de cuota a HTTP 429.
+- **Riesgo pendiente de verificar:** `identificarOrigen` usa el primer valor de `x-forwarded-for` sin comprobación explícita de la cadena de proxies. La seguridad del límite por identificador depende de que el gateway elimine o sobrescriba cabeceras de IP proporcionadas por el cliente. Verificar la política efectiva del gateway y, si corresponde, reforzar en el borde.
+- **Otro punto:** el límite de 3 emisiones por IP y negocio por hora puede afectar a clientes legítimos que comparten red (por ejemplo, Wi-Fi del establecimiento). Evaluar experiencia de usuario antes de modificar cuotas.
+
+No se realizaron peticiones de emisión de prueba, cambios en producción ni despliegues.
