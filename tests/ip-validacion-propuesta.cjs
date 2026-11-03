@@ -15,6 +15,9 @@ function validarIPv4(ip) {
 function validarIPv6(ip) {
   if (!/^[0-9a-fA-F:.]+$/.test(ip) || !ip.includes(':')) return false;
   if (ip.includes(':::') || (ip.match(/::/g) || []).length > 1) return false;
+  // Un solo ':' al principio o al final es inválido en IPv6.
+  if (ip.startsWith(':') && !ip.startsWith('::')) return false;
+  if (ip.endsWith(':') && !ip.endsWith('::')) return false;
   const doble = ip.includes('::');
   const grupos = ip.split(':').filter(Boolean);
   if (!grupos.every(g => /^[0-9a-fA-F]{1,4}$/.test(g))) return false;
