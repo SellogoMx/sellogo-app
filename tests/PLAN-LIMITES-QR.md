@@ -30,3 +30,10 @@ Estado: propuesta técnica, **NO desplegada**. Mantener `tarjeta.html`, tokens y
 
 ## Estado de verificación
 Las 17 pruebas estáticas de `tests/seguridad-estatica.test.cjs` cubren regresiones del frontend, pero **no** validan el gateway, el rate limit real ni la concurrencia del backend. Requieren pruebas de integración controladas. No se ha aplicado ningún cambio de configuración o código al backend en esta etapa.
+
+## Verificación adicional de registros y documentación
+
+- Se consultaron logs de Supabase de las últimas 24 horas: existen eventos en `function_edge_logs` y `function_logs`, pero la agregación disponible no mostró códigos de estado ni evidencia suficiente sobre la procedencia de `x-forwarded-for`. No es posible afirmar que la cabecera esté protegida ni manipulable solo a partir de estos datos.
+- La documentación de Supabase sobre límites de llamadas recursivas entre Edge Functions explica que esos límites afectan a llamadas **salientes entre funciones**, no a las solicitudes **entrantes** del público. No sustituye los límites de emisión implementados en la RPC.
+- La prueba de manipulación de cabeceras debe ejecutarse en un entorno controlado o mediante un procedimiento autorizado que no emita tarjetas reales ni divulgue IPs o tokens.
+- **No se modificó producción ni se confirmó una vulnerabilidad explotable.**
