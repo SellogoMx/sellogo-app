@@ -48,7 +48,7 @@ function msg(s){status.textContent=s}
 function errorText(e){return e?.message||'Ocurrió un error'}
 function activeBusiness(){return memberships.find(m=>m.negocio_id===negocioId)}
 function goal(){return Number(activeBusiness()?.negocios?.sellos_objetivo)||5}
-function refreshButtons(){const active=!!negocioId&&!busy;$('#stamp').disabled=!active||!selected;$('#redeem').disabled=!active||!selected||Number(selected.recompensas_disponibles)<1;$('#remove-stamp').disabled=!active||!selected||Number(selected.sellos)<1;}
+function refreshButtons(){const active=!!negocioId&&!busy;$('#stamp').disabled=!active||!selected;$('#redeem').disabled=!active||!selected||Number(selected.recompensas_disponibles)<1;$('#remove-stamp').disabled=!active||!selected||Number(selected.sellos)<1;$('#business-select').disabled=busy;}
 function resetSelection(){selected=null;$('#selected').innerHTML='<div class="empty-state"><span class="empty-icon">✦</span><strong>Sin tarjeta seleccionada</strong><span>Escanea el QR personal o busca una tarjeta para comenzar.</span></div>';$('#selected-card').classList.add('is-empty');$('#results').replaceChildren();refreshButtons()}
 async function stopScanner(){
  const current=scanner;scanner=null;
