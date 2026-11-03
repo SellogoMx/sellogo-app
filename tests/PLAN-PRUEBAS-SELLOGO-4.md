@@ -49,3 +49,9 @@ Solo realizar en un entorno aislado, con cuentas y tarjetas **de prueba** autori
 4. Registrar resultados **reales** de las pruebas; no marcar pruebas pendientes como aprobadas.
 
 **Estado al crear este documento:** pruebas estáticas añadidas; pruebas de autorización con cuentas ficticias y restauración de respaldos pendientes.
+
+## 5. Verificación de código — 2 de noviembre de 2026
+
+Se recuperaron de GitHub los seis archivos de aplicación usados por la suite (`index.html`, `admin.html`, `propietario.html`, `tarjeta.html`, `cliente.html`, `config.js`) y se ejecutaron 14 comprobaciones equivalentes en JavaScript sobre su contenido. Resultado: **14/14 satisfactorias**. La huella Git de `tarjeta.html` coincide con la versión protegida.
+
+**Alcance:** comprobación independiente del contenido actual; no equivale a una ejecución oficial de `node --test` ni a una prueba de autorización real de Supabase. El estado de GitHub Actions y las pruebas RLS con cuentas ficticias siguen pendientes.
