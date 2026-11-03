@@ -67,3 +67,16 @@ Se leyeron directamente las definiciones SQL de cinco RPC `SECURITY DEFINER`. **
 Las cinco usan `SECURITY DEFINER` y `SET search_path TO ''`; sus referencias a tablas se encuentran calificadas con esquema. Esto es **revisión estática del SQL**, no una prueba con credenciales de usuario. La advertencia del asesor por `EXECUTE` a `authenticated` sigue siendo válida como señal de revisión, pero estas funciones contienen autorización interna explícita. **No revocar permisos de forma masiva** ni cambiar la base de datos sin probar.
 
 **Pendiente:** prueba negativa con cuenta no administradora y auditoría de las restantes RPC.
+
+## Revisión de registro, tarjetas y propietarios — noviembre de 2026
+
+Se leyeron las definiciones SQL de otras cuatro funciones `SECURITY DEFINER`:
+
+- `sellogo_registrar_tarjeta(p_negocio_id)`: exige `auth.uid()`, verifica que el negocio esté habilitado mediante `sellogo_verificar_negocio_activo`, y usa `ON CONFLICT (negocio_id, cliente_id) DO UPDATE SET negocio_id = EXCLUDED.negocio_id`. **No reinicia los sellos ni las recompensas** al reencontrar una tarjeta existente.
+- `sellogo_mis_tarjetas_cliente()`: exige sesión y filtra con `c.usuario_id = auth.uid()`.
+- `sellogo_mis_negocios_propietario()`: filtra por `propietarios_negocios.usuario_id = auth.uid()`; no devuelve otros negocios en la consulta revisada.
+- `sellogo_buscar_negocio_qr(p_slug)`: devuelve únicamente `id`, `nombre`, `slug` y `estado` de un negocio con estado `activo`. Es una búsqueda necesaria para el flujo de registro QR.
+
+**Conclusión limitada:** las definiciones revisadas contienen restricciones razonables de identidad, pertenencia o estado. No son pruebas dinámicas de RLS ni de acceso entre usuarios. Queda pendiente verificar la función `sellogo_verificar_negocio_activo` y el comportamiento de errores y concurrencia.
+
+No se ejecutaron modificaciones SQL.
