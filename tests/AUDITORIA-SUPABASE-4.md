@@ -53,3 +53,17 @@ El asesor de seguridad también reporta `auth_leaked_password_protection` (WARN,
 La revisión volvió a mostrar: 7 tablas con RLS sin políticas, 2 funciones SECURITY DEFINER accesibles a anon y 29 accesibles a authenticated. Los números son avisos de revisión, **no** 38 vulnerabilidades confirmadas. No revocar permisos masivamente: algunas funciones deben ser públicas o autenticadas para operar.
 
 Referencia: https://supabase.com/docs/guides/auth/password-security
+
+## Revisión de funciones administrativas — noviembre de 2026
+
+Se leyeron directamente las definiciones SQL de cinco RPC `SECURITY DEFINER`. **Las cinco comprueban `auth.uid()` y pertenencia a `public.administradores` antes de acceder a datos o ejecutar modificaciones**:
+
+- `sellogo_asignar_empleado`: valida rol (`empleado` o `administrador`), existencia de negocio y cuenta Auth.
+- `sellogo_asignar_propietario`: valida negocio y cuenta Auth.
+- `sellogo_cambiar_estado`: limita el estado a `activo`, `prueba` o `suspendido`.
+- `sellogo_crear_negocio`: valida longitud de nombre y recompensa, slug y objetivo de sellos.
+- `sellogo_listar_negocios`: solo devuelve resultados tras comprobar administración.
+
+Las cinco usan `SECURITY DEFINER` y `SET search_path TO ''`; sus referencias a tablas se encuentran calificadas con esquema. Esto es **revisión estática del SQL**, no una prueba con credenciales de usuario. La advertencia del asesor por `EXECUTE` a `authenticated` sigue siendo válida como señal de revisión, pero estas funciones contienen autorización interna explícita. **No revocar permisos de forma masiva** ni cambiar la base de datos sin probar.
+
+**Pendiente:** prueba negativa con cuenta no administradora y auditoría de las restantes RPC.
