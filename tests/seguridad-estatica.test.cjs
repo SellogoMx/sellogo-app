@@ -33,6 +33,8 @@ test('bloqueo de operaciones simultáneas y cambio de negocio', () => {
   assert.match(employee, /if\(!selected\|\|!negocioId\|\|busy\)return/);
   assert.match(employee, /business-select['"]\)\.disabled=busy/);
   assert.match(employee, /if\(busy\)return/);
+  assert.ok(employee.includes("if(busy){e.target.value=negocioId||'';return;}"), 'bloquear cambio de negocio');
+  assert.ok(employee.includes("if(busy){msg('Espera a que termine la operación antes de cerrar sesión.');return;}"), 'bloquear cierre de sesión');
 });
 
 test('el canje requiere premio disponible y confirmación', () => {
