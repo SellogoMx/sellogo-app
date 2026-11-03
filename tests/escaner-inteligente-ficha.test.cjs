@@ -1,0 +1,13 @@
+const fs=require('node:fs');const assert=require('node:assert/strict');const html=fs.readFileSync('index.html','utf8');const css=fs.readFileSync('panel-premium-v4.css','utf8');
+assert.match(html,/async function loadCardAutoBusiness\(cardId,\{keepScanner=false\}=\{\}\)/);
+assert.match(html,/memberships\.find\(m=>m\.negocio_id===data\.negocio_id\)/);
+assert.match(html,/if\(!membership\)throw new Error/);
+assert.match(html,/scanProcessing=true;lastScannedId=id;lastScannedAt=now/);
+assert.match(html,/now-lastScannedAt<8000/);
+assert.match(html,/loadCardAutoBusiness\(id,\{keepScanner:true\}\)/);
+assert.match(html,/\.select\('nombre'\)\.eq\('id',data\.cliente_id\)/);
+assert.match(html,/\$\('#sg-client-name'\)\.textContent=/);
+assert.match(css,/\.sg-client-identity/);
+assert.match(html,/supabase\.rpc\('agregar_sello'/);
+assert.match(html,/supabase\.rpc\('canjear_recompensa'/);
+console.log('Pruebas estáticas de escáner continuo y ficha premium: OK');
