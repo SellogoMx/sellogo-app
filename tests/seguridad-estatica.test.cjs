@@ -74,3 +74,14 @@ test('la tarjeta pública de producción no se modifica accidentalmente', () => 
   const actual = crypto.createHash('sha1').update(header).update(data).digest('hex');
   assert.equal(actual, '7bcb54f9b3d56e4d1365562992ff9b6f543ddd45');
 });
+
+test('el diseño público requerido por los QR se conserva', () => {
+  assert.match(card, /rest\/v1\/rpc\/sellogo_diseno_publico/);
+  assert.match(card, /p_slug:slug/);
+});
+
+test('el frontend no llama a la función interna de RLS', () => {
+  for (const [name, source] of [['empleados', employee], ['administración', admin], ['propietarios', owner], ['tarjeta pública', card]]) {
+    assert.doesNotMatch(source, /rls_auto_enable\s*\(/, name);
+  }
+});
