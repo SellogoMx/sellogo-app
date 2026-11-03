@@ -698,59 +698,71 @@ $('analytics-pdf').addEventListener('click',async()=>{
  try{
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const W=210,orange=[255,135,47],ink=[25,25,31],gray=[107,107,117];
-  const format=n=>n.toLocaleString('es-MX');
+  const W=210,orange=[255,135,47],ink=[23,27,35],muted=[106,112,125],white=[255,255,255];
+  const format=n=>Number(n||0).toLocaleString('es-MX');
   const monthLabel=new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(r.month+'-01T12:00:00Z'));
   const today=new Intl.DateTimeFormat('es-MX',{dateStyle:'long',timeZone:'America/Merida'}).format(new Date());
-  pdf.setFillColor(13,16,22);pdf.rect(0,0,W,65,'F');
-  pdf.setFillColor(...orange);pdf.rect(0,0,3.5,65,'F');
-  pdf.setDrawColor(65,51,43);pdf.setLineWidth(.3);pdf.line(18,53,192,53);
-  // Logo oficial: se toma de la cabecera del panel, sin dependencias de red.
-  const sgOfficialLogo=document.querySelector('.brand-lockup .brand-mark');
-  try{
-   if(sgOfficialLogo?.complete&&sgOfficialLogo.naturalWidth>0){
-    pdf.addImage(sgOfficialLogo,'PNG',18,11,20,20,undefined,'FAST');
-   }else{
-    pdf.setFillColor(...orange);pdf.roundedRect(18,13,16,16,4,4,'F');
-    pdf.setFont('helvetica','bold');pdf.setFontSize(15);pdf.setTextColor(22,17,14);pdf.text('S',26,24.3,{align:'center'});
-   }
-  }catch(_logoError){
-   pdf.setFillColor(...orange);pdf.roundedRect(18,13,16,16,4,4,'F');
-   pdf.setFont('helvetica','bold');pdf.setFontSize(15);pdf.setTextColor(22,17,14);pdf.text('S',26,24.3,{align:'center'});
+  const fill=(color)=>pdf.setFillColor(...color);
+  const txt=(value,x,y,size=10,color=ink,bold=false,options={})=>{pdf.setFont('helvetica',bold?'bold':'normal');pdf.setFontSize(size);pdf.setTextColor(...color);pdf.text(String(value),x,y,options)};
+  // Cabecera editorial: logo real, título y comercio, sin cajas genéricas.
+  fill([12,15,22]);pdf.rect(0,0,W,96,'F');
+  fill(orange);pdf.rect(0,0,3,96,'F');
+  fill([32,36,46]);pdf.roundedRect(151,10,43,11,5,5,'F');
+  txt('REPORTE MENSUAL',172.5,17,7,[255,184,126],true,{align:'center'});
+  const official=document.querySelector('.brand-lockup .brand-mark');
+  let logoDrawn=false;
+  if(official?.complete&&official.naturalWidth>0){
+   try{pdf.addImage(official,'PNG',18,14,19,19,undefined,'FAST');logoDrawn=true}catch(_){}
   }
-  pdf.setFont('helvetica','bold');pdf.setFontSize(22);pdf.setTextColor(255,255,255);pdf.text('SELLO',39,25);
-  pdf.setTextColor(...orange);pdf.text('GO',72.3,25);
-  pdf.setTextColor(255,182,119);pdf.setFontSize(9);pdf.text('REPORTE DE INTELIGENCIA COMERCIAL',18,38);
-  pdf.setFont('helvetica','normal');pdf.setTextColor(179,184,194);pdf.setFontSize(8);pdf.text('CADA VISITA CUENTA',192,20,{align:'right'});
-  pdf.setTextColor(231,231,236);pdf.setFont('helvetica','normal');pdf.setFontSize(12);
-  const nameLines=pdf.splitTextToSize(r.name,172).slice(0,2);
-  pdf.text(nameLines,18,47);
-  pdf.setTextColor(...ink);pdf.setFont('helvetica','bold');pdf.setFontSize(18);pdf.text('Resumen de actividad',18,82);
-  pdf.setFont('helvetica','normal');pdf.setTextColor(...gray);pdf.setFontSize(10);
-  pdf.text('Periodo: '+monthLabel,18,91);
-  const metrics=[['Sellos entregados',r.stamps],['Recompensas canjeadas',r.redemptions],['Clientes con actividad',r.active]];
-  metrics.forEach(([label,value],i)=>{
+  if(!logoDrawn){fill(orange);pdf.roundedRect(18,14,19,19,4,4,'F');txt('S',27.5,27,18,[12,15,22],true,{align:'center'})}
+  txt('SELLO',43,27.5,24,white,true);
+  txt('GO',75,27.5,24,orange,true);
+  txt('INTELIGENCIA COMERCIAL  /  SELLOGO ANALYTICS',18,45,8,[255,169,101],true);
+  txt('Resultados de tu programa',18,60,19,white,true);
+  const businessLines=pdf.splitTextToSize(r.name,172).slice(0,2);
+  txt(businessLines,18,72,12,[224,227,234],false);
+  pdf.setDrawColor(75,78,88);pdf.setLineWidth(.25);pdf.line(18,86,192,86);
+  txt('PERIODO: '+monthLabel.toUpperCase(),18,91.5,7.5,[189,194,203],true);
+  // Introducción y métricas.
+  txt('PANORAMA GENERAL',18,111,8,orange,true);
+  txt('Tus resultados, en números.',18,121,17,ink,true);
+  txt('Actividad registrada durante el periodo seleccionado.',18,129,9,muted);
+  const metrics=[
+   {label:'SELLOS ENTREGADOS',value:r.stamps,accent:orange},
+   {label:'RECOMPENSAS CANJEADAS',value:r.redemptions,accent:[76,100,132]},
+   {label:'CLIENTES CON ACTIVIDAD',value:r.active,accent:[40,143,119]}
+  ];
+  metrics.forEach((m,i)=>{
    const x=18+i*59;
-   pdf.setFillColor(245,245,247);pdf.roundedRect(x,103,55,35,3,3,'F');
-   pdf.setFont('helvetica','bold');pdf.setFontSize(21);pdf.setTextColor(...ink);pdf.text(format(value),x+5,118);
-   pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.setTextColor(...gray);
-   pdf.text(pdf.splitTextToSize(label,47),x+5,127);
+   fill([246,247,249]);pdf.roundedRect(x,138,55,39,3,3,'F');
+   fill(m.accent);pdf.roundedRect(x,138,55,2.5,1,1,'F');
+   txt(format(m.value),x+6,158,24,ink,true);
+   const lines=pdf.splitTextToSize(m.label,44);
+   txt(lines,x+6,167,7,muted,true);
   });
-  pdf.setFont('helvetica','bold');pdf.setFontSize(14);pdf.setTextColor(...ink);pdf.text('Actividad del mes',18,157);
-  const max=Math.max(r.stamps,r.redemptions,1);
-  [['Sellos entregados',r.stamps],['Canjes realizados',r.redemptions]].forEach(([label,value],i)=>{
-   const y=170+i*27;
-   pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.setTextColor(...ink);pdf.text(label,18,y);
-   pdf.text(format(value),192,y,{align:'right'});
-   pdf.setFillColor(233,233,237);pdf.roundedRect(18,y+5,174,8,3,3,'F');
-   if(value>0){pdf.setFillColor(...orange);pdf.roundedRect(18,y+5,174*value/max,8,Math.min(3,174*value/max/2),Math.min(3,174*value/max/2),'F');}
+  // Comparativo limpio: longitud proporcional, datos visibles y leyenda.
+  txt('ACTIVIDAD DEL MES',18,194,8,orange,true);
+  txt('Movimiento de recompensas',18,204,15,ink,true);
+  const max=Math.max(Number(r.stamps)||0,Number(r.redemptions)||0,1);
+  [
+   {label:'Sellos entregados',value:Number(r.stamps)||0,color:orange},
+   {label:'Recompensas canjeadas',value:Number(r.redemptions)||0,color:[76,100,132]}
+  ].forEach((item,i)=>{
+   const y=216+i*24;
+   txt(item.label,18,y,10,ink,true);
+   txt(format(item.value),192,y,11,ink,true,{align:'right'});
+   fill([231,234,239]);pdf.roundedRect(18,y+5,174,5.5,2.5,2.5,'F');
+   const width=174*item.value/max;
+   if(width>0){fill(item.color);pdf.roundedRect(18,y+5,width,5.5,Math.min(2.5,width/2),Math.min(2.5,width/2),'F')}
   });
-  pdf.setDrawColor(222,222,227);pdf.line(18,232,192,232);
-  pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(...gray);
-  pdf.text(pdf.splitTextToSize('Clientes con actividad: tarjetas distintas que registraron al menos un sello o canje durante el mes. No equivale a clientes nuevos.',174),18,242);
-  pdf.text('Datos: SelloGo / Supabase. Periodos calculados con horario de Mérida.',18,265);
-  pdf.text('Generado el '+today,18,272);
-  pdf.setFont('helvetica','bold');pdf.setTextColor(...orange);pdf.text('CADA VISITA CUENTA',192,285,{align:'right'});
+  // Pie de página compacto con aclaraciones precisas.
+  pdf.setDrawColor(222,226,232);pdf.line(18,264,192,264);
+  txt('CÓMO LEER ESTE REPORTE',18,272,7.5,orange,true);
+  const note='Clientes con actividad: tarjetas distintas que registraron al menos un sello o canje durante el mes; no representa clientes nuevos.';
+  txt(pdf.splitTextToSize(note,174),18,278,7.2,muted);
+  fill([12,15,22]);pdf.rect(0,290,210,7,'F');
+  txt('SELLOGO  ·  CADA VISITA CUENTA',18,294.7,7,[255,184,126],true);
+  txt('Generado el '+today+'  ·  Mérida, Yucatán',192,294.7,6.5,[213,216,222],false,{align:'right'});
   const safeSlug=r.slug.replace(/[^a-z0-9-]/gi,'-').slice(0,65);
   pdf.save(`SelloGo-Reporte-${safeSlug}-${r.month}.pdf`);
   msg.textContent='✓ Reporte PDF generado con las estadísticas consultadas.';msg.classList.add('success');
