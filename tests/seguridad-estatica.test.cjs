@@ -95,3 +95,21 @@ test('registro QR conserva búsqueda del negocio', () => {
 test('registro QR no contiene claves privadas de servidor', () => {
   assert.doesNotMatch(client, /SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+/i);
 });
+
+test('QR público reutiliza token guardado antes de emitir una tarjeta', () => {
+  assert.match(card, /let token=savedToken\(\)/);
+  assert.match(card, /if\(!token\)\{/);
+  assert.match(card, /call\('emitir',\{slug\}\)/);
+  assert.match(card, /saveToken\(token\)/);
+  assert.match(card, /call\('consultar',\{token\}\)/);
+});
+
+test('QR público utiliza Edge Function y comunica límites temporales', () => {
+  assert.match(card, /functions\/v1\/sellogo-tarjetas/);
+  assert.match(card, /e\.status===429/);
+});
+
+test('flujo autenticado de cliente usa RPC distinta de emisión pública', () => {
+  assert.match(client, /rpc\('sellogo_registrar_tarjeta'/);
+  assert.doesNotMatch(client, /sellogo_emitir_tarjeta_interna/);
+});
