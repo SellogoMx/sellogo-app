@@ -737,8 +737,9 @@ $('analytics-pdf').addEventListener('click',async()=>{
    fill([246,247,249]);pdf.roundedRect(x,138,55,39,3,3,'F');
    fill(m.accent);pdf.roundedRect(x,138,55,2.5,1,1,'F');
    txt(format(m.value),x+6,158,24,ink,true);
-   const lines=pdf.splitTextToSize(m.label,44);
-   txt(lines,x+6,167,7,muted,true);
+   // Etiquetas breves y en una sola línea para evitar artefactos en visores PDF móviles.
+   const shortLabels=['SELLOS','CANJES','CLIENTES ACTIVOS'];
+   txt(shortLabels[i],x+6,167,7,muted,true);
   });
   // Comparativo limpio: longitud proporcional, datos visibles y leyenda.
   txt('ACTIVIDAD DEL MES',18,194,8,orange,true);
