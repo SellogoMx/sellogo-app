@@ -16,7 +16,7 @@ test('acepta IPv6 básica y comprimida', () => {
   assert.equal(validarIp('2001:0db8:0000:0000:0000:0000:0000:0001'), true);
 });
 test('rechaza IPv6 malformada', () => {
-  for (const ip of ['2001:::1', '2001:db8::1::2', 'gggg::1']) {
+  for (const ip of ['2001:::1', '2001:db8::1::2', 'gggg::1', '1:2:3:4:5:6:7:8:', ':1:2:3:4:5:6:7:8']) {
     assert.equal(validarIp(ip), false, ip);
   }
 });
