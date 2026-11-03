@@ -702,9 +702,16 @@ $('analytics-pdf').addEventListener('click',async()=>{
   const format=n=>n.toLocaleString('es-MX');
   const monthLabel=new Intl.DateTimeFormat('es-MX',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(r.month+'-01T12:00:00Z'));
   const today=new Intl.DateTimeFormat('es-MX',{dateStyle:'long',timeZone:'America/Merida'}).format(new Date());
-  pdf.setFillColor(...ink);pdf.rect(0,0,W,65,'F');
-  pdf.setFont('helvetica','bold');pdf.setFontSize(23);pdf.setTextColor(255,255,255);pdf.text('SELLOGO',18,24);
-  pdf.setTextColor(...orange);pdf.setFontSize(10);pdf.text('ANALYTICS  /  REPORTE MENSUAL',18,35);
+  pdf.setFillColor(13,16,22);pdf.rect(0,0,W,65,'F');
+  pdf.setFillColor(...orange);pdf.rect(0,0,3.5,65,'F');
+  pdf.setDrawColor(65,51,43);pdf.setLineWidth(.3);pdf.line(18,53,192,53);
+  // Identidad SelloGo construida en vectores: no depende de imágenes externas.
+  pdf.setFillColor(...orange);pdf.roundedRect(18,13,16,16,4,4,'F');
+  pdf.setFont('helvetica','bold');pdf.setFontSize(15);pdf.setTextColor(22,17,14);pdf.text('S',26,24.3,{align:'center'});
+  pdf.setFont('helvetica','bold');pdf.setFontSize(22);pdf.setTextColor(255,255,255);pdf.text('SELLO',39,25);
+  pdf.setTextColor(...orange);pdf.text('GO',72.3,25);
+  pdf.setTextColor(255,182,119);pdf.setFontSize(9);pdf.text('REPORTE DE INTELIGENCIA COMERCIAL',18,38);
+  pdf.setFont('helvetica','normal');pdf.setTextColor(179,184,194);pdf.setFontSize(8);pdf.text('CADA VISITA CUENTA',192,20,{align:'right'});
   pdf.setTextColor(231,231,236);pdf.setFont('helvetica','normal');pdf.setFontSize(12);
   const nameLines=pdf.splitTextToSize(r.name,172).slice(0,2);
   pdf.text(nameLines,18,47);
@@ -733,7 +740,7 @@ $('analytics-pdf').addEventListener('click',async()=>{
   pdf.text(pdf.splitTextToSize('Clientes con actividad: tarjetas distintas que registraron al menos un sello o canje durante el mes. No equivale a clientes nuevos.',174),18,242);
   pdf.text('Datos: SelloGo / Supabase. Periodos calculados con horario de Mérida.',18,265);
   pdf.text('Generado el '+today,18,272);
-  pdf.setFont('helvetica','bold');pdf.setTextColor(...orange);pdf.text('CADA COMPRA CUENTA',192,285,{align:'right'});
+  pdf.setFont('helvetica','bold');pdf.setTextColor(...orange);pdf.text('CADA VISITA CUENTA',192,285,{align:'right'});
   const safeSlug=r.slug.replace(/[^a-z0-9-]/gi,'-').slice(0,65);
   pdf.save(`SelloGo-Reporte-${safeSlug}-${r.month}.pdf`);
   msg.textContent='✓ Reporte PDF generado con las estadísticas consultadas.';msg.classList.add('success');
