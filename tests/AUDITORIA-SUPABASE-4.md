@@ -102,3 +102,16 @@ Se volvió a leer `sellogo_registrar_tarjeta` y se inspeccionó `sellogo_current
 - Se buscaron las funciones `sellogo_verificar_cuota_registro`, `sellogo_validar_registro` y `sellogo_registrar_acceso_tarjeta`; no existen con esos nombres. **Esto no prueba que falten límites de registro**, pues pueden implementarse mediante triggers, otras funciones, tablas o la capa de aplicación.
 
 **Pendiente:** inspeccionar triggers y cuotas reales, verificar con cuentas ficticias la resistencia a registros repetidos y revisar límites de frecuencia. Sin cambios en producción.
+
+## Cuotas de emisión y tokens privados — noviembre de 2026
+
+Inspección SQL de triggers, tablas, funciones y privilegios:
+
+- No se encontraron triggers de usuario en `clientes`, `tarjetas`, `sellogo_cuotas_registro`, `sellogo_limites_registro` ni `sellogo_accesos_tarjetas`.
+- `sellogo_emitir_tarjeta_interna` sí implementa cuotas mediante `sellogo_cuotas_registro`: máximo **3 emisiones por identificador y hora** y **500 por negocio y hora**. Bloquea la fila del negocio con `FOR UPDATE` para serializar la comprobación concurrente.
+- Valida el formato del identificador como hash hexadecimal de 64 caracteres, exige negocio `activo`, genera token aleatorio de 32 bytes y guarda solo su SHA-256.
+- `sellogo_consultar_tarjeta_privada` busca el hash SHA-256 del token recibido y solo devuelve datos de tarjetas de negocios `activo`.
+- Consulta directa de `has_function_privilege`: **anon=false**, **authenticated=false**, **service_role=true** para ambas funciones. No están disponibles directamente a clientes públicos vía RPC.
+- **Pendiente:** verificar qué servicio llama a estas funciones, cómo calcula el identificador, si aplica controles de frecuencia antes de invocar la función y cómo se gestionan tokens expuestos o perdidos. El límite por identificador puede evadirse si el emisor acepta identificadores arbitrarios; esta revisión SQL no prueba que ocurra.
+
+No se ejecutaron escrituras SQL ni pruebas de emisión real.
