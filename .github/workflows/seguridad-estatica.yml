@@ -38,4 +38,4 @@ jobs:
         with:
           node-version: '22'
       - name: Ejecutar pruebas sin acceso a Supabase
-        run: node --test tests/seguridad-estatica.test.cjs tests/limites-qr-aislados.test.cjs tests/ip-validacion-propuesta.test.cjs tests/redes-compartidas-aisladas.test.cjs tests/diagnostico-gateway-aislado.test.cjs tests/diagnostico-gateway-local.test.cjs tests/amenazas-cuotas-ip.test.cjs
+        run: node --test tests/seguridad-estatica.test.cjs tests/limites-qr-aislados.test.cjs tests/ip-validacion-propuesta.test.cjs tests/redes-compartidas-aisladas.test.cjs tests/diagnostico-gateway-aislado.test.cjs tests/diagnostico-gateway-local.test.cjs tests/amenazas-cuotas-ip.test.cjs tests/defensa-capas-prototipo.test.cjs
