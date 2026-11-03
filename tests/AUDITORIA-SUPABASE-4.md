@@ -92,3 +92,13 @@ Se leyó la definición SQL de `public.sellogo_verificar_negocio_activo(p_negoci
 La función es `SECURITY DEFINER` con `search_path TO ''`. Esta validación se invoca desde las funciones de registro y operación de sellos revisadas. **La validación de estado no sustituye la comprobación de identidad y pertenencia al negocio** que cada operación debe realizar.
 
 **Estado:** revisión estática satisfactoria; sin pruebas dinámicas de cuentas ni modificaciones a producción.
+
+## Revisión adicional de duplicados y abuso de registros — noviembre de 2026
+
+Se volvió a leer `sellogo_registrar_tarjeta` y se inspeccionó `sellogo_current_client_id()`:
+
+- `sellogo_registrar_tarjeta` usa `ON CONFLICT (usuario_id)` para reutilizar el cliente y `ON CONFLICT (negocio_id, cliente_id)` para reutilizar la tarjeta, sin restablecer sellos ni recompensas.
+- `sellogo_current_client_id` devuelve el cliente vinculado a `auth.uid()`; está definida como `SECURITY DEFINER` con `row_security TO 'off'`, por lo que su filtro explícito de identidad es importante.
+- Se buscaron las funciones `sellogo_verificar_cuota_registro`, `sellogo_validar_registro` y `sellogo_registrar_acceso_tarjeta`; no existen con esos nombres. **Esto no prueba que falten límites de registro**, pues pueden implementarse mediante triggers, otras funciones, tablas o la capa de aplicación.
+
+**Pendiente:** inspeccionar triggers y cuotas reales, verificar con cuentas ficticias la resistencia a registros repetidos y revisar límites de frecuencia. Sin cambios en producción.
