@@ -16,5 +16,5 @@ test('diagnóstico no imprime ni devuelve IP observada', () => {
 });
 
 test('diagnóstico no crea tarjetas ni cambia límites', () => {
-  assert.doesNotMatch(source, /sellogo_emitir_tarjeta_interna|sellogo_cuotas_registro|supabase\\.from\\s*\\(/);
+  assert.doesNotMatch(source, /sellogo_emitir_tarjeta_interna|sellogo_cuotas_registro|supabase\.from\s*\(/);
 });
