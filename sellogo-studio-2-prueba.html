@@ -66,6 +66,28 @@ h1,h2,h3{letter-spacing:-.8px}h1 em{font-style:normal;color:#ff922f}h1{font-weig
 @media(max-width:920px){#studio-panel>.studio-grid{grid-template-columns:1fr}#studio-panel .studio-preview{position:static;max-width:560px;width:100%;margin:0 auto}}
 @media(max-width:600px){#studio-form{padding:17px}#studio-panel .studio-preview{padding:12px}#studio-panel .preview-card{min-height:460px;padding:24px 17px!important}}
 @media(prefers-reduced-motion:reduce){#studio-panel .preview-card:after,#studio-panel .preview-logo{animation:none!important}}
+
+/* Studio iPad landscape: workspace layout only; no changes to business data or saved designs. */
+@media (min-width: 900px) and (orientation: landscape) {
+  .shell:has(#studio-panel:not(.hidden)){max-width:1440px;padding-inline:clamp(18px,2.5vw,42px)}
+  #studio-panel{padding:clamp(20px,2.5vw,38px)}
+  #studio-panel .studio-grid{grid-template-columns:minmax(330px,.9fr) minmax(400px,1.1fr);gap:clamp(18px,2.5vw,38px);align-items:start}
+  #studio-panel .studio-preview{position:sticky;top:14px;align-self:start}
+  #studio-panel .preview-card{min-height:clamp(380px,53vh,630px);padding:clamp(22px,2.5vw,36px)!important}
+  #studio-panel .studio-flow{margin:16px 0 22px}
+  #studio-panel .studio-flow>div{padding:12px 16px}
+  #studio-panel .studio-upload-tools{margin-top:12px!important}
+  #studio-panel .studio-preset-actions{gap:7px}
+  #studio-panel .studio-preset{padding:9px 10px}
+  #studio-panel #studio-form .field{margin-top:13px}
+  #studio-panel .preview-title{font-size:clamp(24px,3vw,37px)}
+  #studio-panel .preview-stamp{font-size:clamp(20px,2vw,29px)}
+  #studio-panel .studio-next-qr{min-height:48px}
+}
+@media (min-width: 900px) and (max-height: 700px) and (orientation: landscape) {
+  #studio-panel .studio-preview{top:8px}
+  #studio-panel .preview-card{min-height:345px}
+}
 </style>
 <style id="google-auth-style">.google-separator{display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:#9da0aa;font-size:12px}.google-separator:before,.google-separator:after{content:"";height:1px;background:#ffffff26;flex:1}.google-signin{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 16px;border:1px solid #ffffff45;border-radius:13px;background:#fff;color:#242424;font-weight:750;transition:background .2s}.google-signin:hover{background:#eee}.google-signin:disabled{opacity:.6;cursor:wait}</style></head>
 <body><main class="shell">
