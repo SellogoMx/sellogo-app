@@ -88,6 +88,33 @@ h1,h2,h3{letter-spacing:-.8px}h1 em{font-style:normal;color:#ff922f}h1{font-weig
   #studio-panel .studio-preview{top:8px}
   #studio-panel .preview-card{min-height:345px}
 }
+
+/* Studio premium visual layer, isolated to the administrator design workspace. */
+#studio-panel{background:radial-gradient(ellipse at 90% 0%,#ff872f10,transparent 42%),linear-gradient(155deg,#1c2028,#12151c 70%);border:1px solid #ffffff20;box-shadow:0 30px 80px #0005}
+#studio-panel #studio-title{letter-spacing:-.055em;font-size:clamp(29px,3.1vw,43px);font-weight:850}
+#studio-panel .studio-flow>div{border:1px solid #ffffff1e;background:linear-gradient(140deg,#ffffff0b,#ffffff03);box-shadow:inset 0 1px #ffffff0b;transition:border-color .25s,transform .25s}
+#studio-panel .studio-flow>div:hover{border-color:#ff872f65;transform:translateY(-2px)}
+#studio-panel #studio-form{background:linear-gradient(155deg,#121822,#0b0e15);border:1px solid #ffffff20;box-shadow:0 24px 70px #0005,inset 0 1px #ffffff10}
+#studio-panel #studio-form input:not([type=color]),#studio-panel #studio-form select{background:#0c1119;border:1px solid #ffffff30;transition:border-color .2s,box-shadow .2s}
+#studio-panel #studio-form input:focus-visible,#studio-panel #studio-form select:focus-visible{border-color:#ff9d5e;box-shadow:0 0 0 3px #ff872f20}
+#studio-panel .studio-presets{background:linear-gradient(125deg,#ff872f14,#ffffff03);border:1px solid #ff872f40}
+#studio-panel .studio-preset{transition:transform .2s,border-color .2s,background .2s}
+#studio-panel .studio-preset:active{transform:scale(.97)}
+#studio-panel .studio-preview{border:1px solid #ffffff28;background:linear-gradient(150deg,#20252e,#0b1017);box-shadow:0 28px 80px #0008,inset 0 1px #ffffff12}
+#studio-panel .studio-preview h3{display:flex;align-items:center;gap:9px;font-weight:750}
+#studio-panel .studio-preview h3:before{content:"";width:8px;height:8px;border-radius:50%;background:#7bdba8;box-shadow:0 0 0 4px #7bdba81c}
+#studio-panel .preview-card{border-radius:32px!important;box-shadow:0 35px 75px #000a,0 0 0 1px #ffffff18,inset 0 1px #ffffff45!important;transition:background-color .35s,border-color .35s,box-shadow .35s,transform .35s}
+#studio-panel .preview-card:hover{transform:translateY(-3px);box-shadow:0 42px 85px #000c,0 0 0 1px #ffffff22,inset 0 1px #ffffff45!important}
+#studio-panel .preview-card:after{animation:sgStudioSheen 8s ease-in-out infinite}
+#studio-panel .preview-title{letter-spacing:-.045em;line-height:1.12;text-shadow:0 2px 18px #0007}
+#studio-panel .preview-logo{border:1px solid #ffffff3a;box-shadow:0 10px 28px #0004;backdrop-filter:blur(8px)}
+#studio-panel .preview-stamp{transition:transform .25s,background .25s;box-shadow:inset 0 1px #ffffff1a}
+#studio-panel .preview-stamp:hover{transform:translateY(-3px) scale(1.04);background:#ffffff20}
+#studio-panel .studio-next-qr{border-color:#ff872f88;background:linear-gradient(100deg,#ff872f18,#ff872f05);font-weight:750}
+#studio-panel #studio-save{box-shadow:0 9px 28px #ff872f30;transition:transform .2s,box-shadow .2s}
+#studio-panel #studio-save:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 14px 34px #ff872f48}
+@keyframes sgStudioSheen{0%,35%{left:-250px}60%,100%{left:calc(100% + 250px)}}
+@media(prefers-reduced-motion:reduce){#studio-panel .preview-card:after{animation:none}#studio-panel .preview-card,#studio-panel .studio-flow>div,#studio-panel #studio-save,#studio-panel .preview-stamp{transition:none!important}}
 </style>
 <style id="google-auth-style">.google-separator{display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:#9da0aa;font-size:12px}.google-separator:before,.google-separator:after{content:"";height:1px;background:#ffffff26;flex:1}.google-signin{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 16px;border:1px solid #ffffff45;border-radius:13px;background:#fff;color:#242424;font-weight:750;transition:background .2s}.google-signin:hover{background:#eee}.google-signin:disabled{opacity:.6;cursor:wait}</style></head>
 <body><main class="shell">
