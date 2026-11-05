@@ -320,10 +320,18 @@ $('studio-to-qr').addEventListener('click',()=>{
 });
 $('studio-business').addEventListener('change',()=>{$('studio-to-qr').disabled=!$('studio-business').value;loadStudioDesign()});
 for(const id of ['studio-name','studio-primary','studio-secondary','studio-text','studio-icon','studio-font','studio-logo','studio-background'])$(id).addEventListener('input',()=>{studioEditVersion++;updateStudioPreview()});
+function isProtectedTallerBusiness(id){
+ const b=studioBusinesses.find(item=>item.id===id);
+ if(!b)return false;
+ const normalized=String(b.nombre||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const slug=String(b.slug||'').toLowerCase();
+ return slug==='taller-automotriz-hernandez'||normalized==='taller automotriz hernandez';
+}
 $('studio-form').addEventListener('submit',async e=>{
  e.preventDefault();
  const id=$('studio-business').value;
  if(!id){$('studio-message').textContent='Selecciona una empresa.';return}
+ if(isProtectedTallerBusiness(id)){$('studio-message').textContent='🔒 Taller Automotriz Hernández está protegido: no se permiten cambios de diseño desde SelloGo Studio.';return}
  const button=$('studio-save');button.disabled=true;
  $('studio-message').classList.remove('success');$('studio-message').textContent='Guardando y verificando diseño…';
  const params={
