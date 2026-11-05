@@ -17,3 +17,11 @@ test('composiciones encapsuladas en tarjeta pública',()=>{
  assert.match(source,/\.app\[data-card-layout="editorial"\]/);
  assert.doesNotMatch(source,/\.app\[data-card-layout="classic"\]/);
 });
+
+test('consulta composición pública con endpoint válido y sin alterar diseños heredados',()=>{
+ assert.match(source,/rpc\/sellogo_composicion_publica/);
+ assert.match(source,/await cargarComposicion\(\)/);
+ assert.match(source,/if\(!r\.ok\)return/);
+ assert.match(source,/if\(slug!=='taller-automotriz-hernandez'/);
+ assert.doesNotMatch(source,/SUPABASE_URL\.replace\(\/\\\\\/\$\//);
+});
