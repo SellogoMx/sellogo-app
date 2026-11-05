@@ -376,6 +376,7 @@ async function load(){
   const result=await call('consultar',{token});
   if(result.tarjeta?.slug!==slug)throw new Error('La tarjeta no corresponde a este negocio.');
   aplicarDiseno(await disenoPendiente);
+  await cargarComposicion();
   render(result.tarjeta);
   sgSignatureWelcome();
  }catch(e){
@@ -385,7 +386,7 @@ async function load(){
 }
 async function refresh(){
  if(busy)return;busy=true;$('refresh').disabled=true;$('status').textContent='Actualizando…';
- try{const token=savedToken();if(!token)throw new Error('No encontramos una tarjeta guardada en este navegador.');const [result,newDesign]=await Promise.all([call('consultar',{token}),cargarDiseno()]);if(newDesign)aplicarDiseno(newDesign);render(result.tarjeta);$('status').textContent='Tarjeta actualizada.'}
+ try{const token=savedToken();if(!token)throw new Error('No encontramos una tarjeta guardada en este navegador.');const [result,newDesign]=await Promise.all([call('consultar',{token}),cargarDiseno()]);if(newDesign)aplicarDiseno(newDesign);await cargarComposicion();render(result.tarjeta);$('status').textContent='Tarjeta actualizada.'}
  catch(e){$('status').textContent=e.message||'No se pudo actualizar la tarjeta.'}
  finally{busy=false;$('refresh').disabled=false}
 }
