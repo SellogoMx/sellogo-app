@@ -193,6 +193,19 @@ body{background:#050b14;color:#fff}
 @keyframes v6-breathe{0%,100%{opacity:.65;transform:scale(.97)}50%{opacity:1;transform:scale(1.08)}}
 @media(max-width:380px){.app{padding-left:13px!important;padding-right:13px!important}.card,.app.themed .card{padding:19px 14px!important}.card-head .tag{font-size:8px!important}.sg-business-name{font-size:23px!important}}
 @media(prefers-reduced-motion:reduce){.sg-business-hero .negocio-logo,.sg-business-hero:before{animation:none!important}html{scroll-behavior:auto}}
+
+/* Premium layout engine: inactive unless a validated layout is explicitly provided by the business design API. */
+.app[data-card-layout="centered"] .sg-business-hero{text-align:center}
+.app[data-card-layout="centered"] .sg-business-hero .negocio-logo{margin-left:auto;margin-right:auto}
+.app[data-card-layout="centered"] .card-head{justify-content:center;flex-wrap:wrap;text-align:center}
+.app[data-card-layout="centered"] .card .stamps{justify-items:center}
+.app[data-card-layout="centered"] .reward-panel{text-align:center}
+.app[data-card-layout="editorial"] .sg-business-name{font-family:Georgia,serif;font-weight:600;font-style:italic;letter-spacing:-.035em}
+.app[data-card-layout="editorial"] .card{border-radius:10px 28px 10px 28px}
+.app[data-card-layout="editorial"] .card-head{border-bottom:1px solid #ffffff35;padding-bottom:17px}
+.app[data-card-layout="editorial"] .stamps{border-bottom:1px solid #ffffff30;padding-bottom:18px}
+.app[data-card-layout="editorial"] .reward-panel{border-radius:10px 25px 10px 25px}
+@media(prefers-reduced-motion:reduce){.app[data-card-layout] *{scroll-behavior:auto}}
 </style>
 </head>
 <body><div aria-hidden="true" class="sg-intro sg-gone" id="sg-intro"><div class="sg-intro-inner"><div class="sg-stamp-mark"><div class="sg-stamp-symbol"><span class="sg-letter">S</span><span class="sg-squares"><i></i><i></i><i></i><i></i></span></div><div class="sg-ring"></div></div><div class="sg-intro-title">Sello<b>Go</b></div><div class="sg-intro-tagline">Cada visita cuenta</div></div></div>
@@ -254,6 +267,15 @@ function aplicarDiseno(d){
  else{logo.classList.add('hidden');logo.removeAttribute('src')}
  const icono=typeof d.icono_sello==='string'?[...d.icono_sello.trim()].slice(0,4).join(''):'';
  diseno={icono};
+ // Only explicitly configured layouts are enabled; legacy cards stay unchanged.
+ // Taller Automotriz Hernández is permanently excluded from this opt-in.
+ const protectedBusiness=slug==='taller-automotriz-hernandez';
+ const layout=typeof d.diseno_layout==='string'?d.diseno_layout:'';
+ if(!protectedBusiness && (layout==='centered'||layout==='editorial')){
+   app.dataset.cardLayout=layout;
+ }else{
+   delete app.dataset.cardLayout;
+ }
  app.classList.add('themed');
 }
 function show(section){for(const id of ['loading','error','card-screen'])$(id).classList.toggle('hidden',id!==section)}
