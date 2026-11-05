@@ -254,6 +254,22 @@ async function cargarDiseno(){
   return Array.isArray(rows)&&rows[0]?rows[0]:null;
  }catch{return null}
 }
+async function cargarComposicion(){
+ try{
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),5000);
+  const r=await fetch(`${SUPABASE_URL.replace(/\\/$/,'')}/rest/v1/rpc/sellogo_composicion_publica`,{
+   method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY},
+   body:JSON.stringify({p_slug:slug}),cache:'no-store',signal:ctrl.signal
+  });
+  clearTimeout(timer);
+  if(!r.ok)return;
+  const rows=await r.json();
+  const layout=Array.isArray(rows)?rows[0]?.diseno_layout:null;
+  if(slug!=='taller-automotriz-hernandez' && (layout==='centered'||layout==='editorial')){
+   document.querySelector('.app').dataset.cardLayout=layout;
+  }
+ }catch{/* Keep the existing card layout if the optional service is unavailable. */}
+}
 function aplicarDiseno(d){
  if(!d||!colorOk(d.color_primario)||!colorOk(d.color_secundario)||!colorOk(d.color_texto)){diseno=null;return}
  const app=document.querySelector('.app'),card=document.querySelector('.card'),logo=$('negocio-logo');
